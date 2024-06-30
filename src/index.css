@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure the html and body take up the full height */
+/* TailwindCSS should handle this out of the box if configured correctly */
