@@ -1,53 +1,67 @@
-import{ useState } from 'react';
+import { useState } from "react";
+import axios from 'axios';
+import { toast } from "react-toastify";
+import { useNavigate } from 'react-router-dom';
 
 const ProviderSignUp = () => {
-    const [formData, setFormData] = useState({
-        companyName: '',
-        description: '',
-        address: '',
-        telephone: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
+    const navigate = useNavigate();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-    };
+    const [companyName, setCompanyName] = useState("");
+    const [description, setDescription] = useState("");
+    const [address, setAddress] = useState("");
+    const [telephone, setTelephone] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match!");
             return;
         }
 
+        const newProvider = {
+            company_name: companyName,
+            description,
+            address,
+            telephone, 
+            email,
+            password
+        };
+
         try {
-            const response = await fetch('[http://127.0.0.1:8000/api/provider/register', {
+            setIsLoading(true);
+            const response = await axios( {
                 method: 'POST',
+                url: 'http://127.0.0.1:8000/api/provider/register',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                data: JSON.stringify(newProvider),
             });
+            console.log('Response data:', response.data);
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+            if (response.status === 200 && response.data && response.data.id) {
+                toast.success("Registration successful");
+                navigate('/login');
+            } else {
+                console.log('Unexpected response format:', response.data); // Debugging log
+                toast.error('Registration failed. Please try again.');
             }
 
-            const data = await response.json();
-            console.log('Registration successful:', data);
-            alert("Registration successful!");
-            // You can redirect or reset the form here
+        } catch (err) {
+            console.log('Some error occurred during signing up: ', err);
 
-        } catch (error) {
-            console.error('There was an error registering:', error);
-            alert("Registration failed. Please try again.");
+            if (err.response) {
+                console.error('Error response:', err.response.data); // Detailed error response
+            }
+            toast.error('Registration failed. Please try again.');
+            }
+        finally {
+            setIsLoading(false);
         }
     };
 
@@ -66,8 +80,8 @@ const ProviderSignUp = () => {
                             name="companyName"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Company Name"
-                            value={formData.companyName}
-                            onChange={handleChange}
+                            value={companyName}
+                            onChange={(e) => setCompanyName(e.target.value)}
                             required
                         />
                     </div>
@@ -81,8 +95,8 @@ const ProviderSignUp = () => {
                             className="border rounded w-full py-2 px-3"
                             placeholder="Company Description"
                             rows={4}
-                            value={formData.description}
-                            onChange={handleChange}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
                             required
                         />
                     </div>
@@ -96,8 +110,8 @@ const ProviderSignUp = () => {
                             name="address"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Address"
-                            value={formData.address}
-                            onChange={handleChange}
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
                             required
                         />
                     </div>
@@ -111,8 +125,8 @@ const ProviderSignUp = () => {
                             name="telephone"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Telephone"
-                            value={formData.telephone}
-                            onChange={handleChange}
+                            value={telephone}
+                            onChange={(e) => setTelephone(e.target.value)}
                             required
                         />
                     </div>
@@ -126,8 +140,8 @@ const ProviderSignUp = () => {
                             name="email"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
@@ -141,8 +155,8 @@ const ProviderSignUp = () => {
                             name="password"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
@@ -156,8 +170,8 @@ const ProviderSignUp = () => {
                             name="confirmPassword"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Confirm Password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                         />
                     </div>

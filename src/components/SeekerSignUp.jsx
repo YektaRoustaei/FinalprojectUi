@@ -1,55 +1,69 @@
 import { useState } from 'react';
+import axios from 'axios';
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const SeekerSignUp = () => {
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        address: '',
-        email: '',
-        skills: '',
-        password: '',
-        confirmPassword: ''
-    });
+    const navigate = useNavigate();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-    };
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [address, setAddress] = useState("");
+    const [phonenumber, setPhonenumber] = useState(""); // Updated to match backend expected field
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match!");
             return;
         }
 
+        const newSeeker = {
+            first_name: firstName,
+            last_name: lastName,
+            address,
+            phonenumber, // Convert phonenumber to integer
+            email,
+            password
+        };
+
         try {
-            const response = await fetch('http://your-laravel-backend-url/api/register-seeker', {
+            setIsLoading(true);
+            const response =  await axios({
                 method: 'POST',
+                url: 'http://127.0.0.1:8000/api/seeker/register',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                data: JSON.stringify(newSeeker),
             });
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+            if (response.status === 200 && response.data && response.data.id) {
+                toast.success("Registration successful");
+                navigate('/loginSeeker');
+            } else {
+                console.log('Unexpected response format:', response.data); // Debugging log
+                toast.error('Registration failed. Please try again.');
             }
 
-            const data = await response.json();
-            console.log('Registration successful:', data);
-            alert("Registration successful!");
-            // You can redirect or reset the form here
+        } catch (err) {
+            console.log('Some error occurred during signing up: ', err);
 
-        } catch (error) {
-            console.error('There was an error registering:', error);
-            alert("Registration failed. Please try again.");
+            if (err.response) {
+                console.error('Error response:', err.response.data); // Detailed error response
+            }
+            toast.error('Registration failed. Please try again.');
+        }
+        finally {
+            setIsLoading(false);
         }
     };
+
 
     return (
         <section className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -66,8 +80,8 @@ const SeekerSignUp = () => {
                             name="firstName"
                             className="border rounded w-full py-2 px-3"
                             placeholder="First Name"
-                            value={formData.firstName}
-                            onChange={handleChange}
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
                             required
                         />
                     </div>
@@ -81,8 +95,23 @@ const SeekerSignUp = () => {
                             name="lastName"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Last Name"
-                            value={formData.lastName}
-                            onChange={handleChange}
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="phonenumber" className="block text-gray-700 font-bold mb-2">
+                            Phone Number
+                        </label>
+                        <input
+                            type="tel"
+                            id="phonenumber"
+                            name="phonenumber"
+                            className="border rounded w-full py-2 px-3"
+                            placeholder="Phone Number"
+                            value={phonenumber}
+                            onChange={(e) => setPhonenumber(e.target.value)}
                             required
                         />
                     </div>
@@ -96,8 +125,8 @@ const SeekerSignUp = () => {
                             name="address"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Address"
-                            value={formData.address}
-                            onChange={handleChange}
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
                             required
                         />
                     </div>
@@ -111,26 +140,12 @@ const SeekerSignUp = () => {
                             name="email"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="skills" className="block text-gray-700 font-bold mb-2">
-                            Skills
-                        </label>
-                        <textarea
-                            id="skills"
-                            name="skills"
-                            className="border rounded w-full py-2 px-3"
-                            placeholder="List your skills"
-                            rows={4}
-                            value={formData.skills}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+
                     <div className="mb-4">
                         <label htmlFor="password" className="block text-gray-700 font-bold mb-2">
                             Password
@@ -141,8 +156,8 @@ const SeekerSignUp = () => {
                             name="password"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
@@ -156,8 +171,8 @@ const SeekerSignUp = () => {
                             name="confirmPassword"
                             className="border rounded w-full py-2 px-3"
                             placeholder="Confirm Password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                         />
                     </div>
