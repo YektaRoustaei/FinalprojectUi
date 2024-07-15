@@ -1,36 +1,31 @@
-
 const Login = () => {
-
     return (
         <>
             <section className="flex items-center justify-center min-h-screen bg-gray-100">
-                <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 my-5">
-                    <h2 className="text-center text-3xl font-bold text-gray-800 mb-8">Login</h2>
-                    <div className="flex flex-col md:flex-row justify-around items-center mb-6">
-                        <div className="mb-4 md:mb-0">
-                            <a
-                                href='/loginSeeker'
-                                className="border border-gray-300 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-black rounded-lg bg-primary-700 hover:bg-primary-800 hover:text-white focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
-                            >
-                                Login as Job Seeker
-                            </a>
-                        </div>
-                        <div>
-                            <a
-                                href='/loginprovider'
-                                className="border border-gray-300 inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-black rounded-lg bg-primary-700 hover:bg-primary-800 hover:text-white focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900 hover:bg-gray-100  dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
-                            >
-                                Login as Job Provider
-                            </a>
-                        </div>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-gray-600">Do not have an account?</p>
+                <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+                    <h2 className="text-center text-3xl font-bold text-gray-800 mb-6">Login</h2>
+                    <div className="flex flex-col space-y-4">
                         <a
-                            href='/signup'
+                            href="/loginSeeker"
+                            className="w-full py-3 px-5 text-base font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 transition duration-200 ease-in-out"
+                        >
+                            Login as Job Seeker
+                        </a>
+                        <a
+                            href="/loginprovider"
+                            className="w-full py-3 px-5 text-base font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 transition duration-200 ease-in-out"
+                        >
+                            Login as Job Provider
+                        </a>
+                    </div>
+                    <div className="text-center mt-6">
+                        {/* eslint-disable-next-line react/no-unescaped-entities */}
+                        <p className="text-gray-600"> Don't have an account?</p>
+                        <a
+                            href="/signup"
                             className="text-blue-600 hover:text-blue-800 transition duration-200 ease-in-out"
                         >
-                           Sign Up
+                            Sign Up
                         </a>
                     </div>
                 </div>

@@ -24,6 +24,9 @@ export async function getAuthenticatedUser() {
         if (token === 'Provider_token') {
             url = 'http://127.0.0.1:8000/api/provider/get-info';
         }
+        else if (token === 'Admin_token') {
+            url = 'http://127.0.0.1:8000/api/admin';
+        }
 
         const response = await axios({
             method: 'GET',

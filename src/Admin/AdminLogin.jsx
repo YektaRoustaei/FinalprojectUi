@@ -5,52 +5,47 @@ import { useUser } from '../Tokens/customHooks';
 import { storeTokenInLocalStorage } from '../Tokens/common';
 import { useNavigate } from 'react-router-dom';
 
-const LoginProvider = () => {
+const AdminLogin = () => {
     const navigate = useNavigate();
     const { user, authenticated } = useUser();
 
     useEffect(() => {
         if (user || authenticated) {
-            console.log('Navigating to /provider-dashboard');
-            navigate('/provider-dashboard');
+            navigate('/admin');
         }
     }, [user, authenticated, navigate]);
 
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email || !password) {
+        if (!username || !password) {
             toast.error('Please fill in all fields.');
             return;
         }
 
         try {
             setIsLoading(true);
-            const response = await axios({
-                method: 'POST',
-                url: 'http://127.0.0.1:8000/api/provider/login',
+            const response = await axios.post('http://127.0.0.1:8000/api/admin/login', {
+                username,
+                password
+            }, {
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                data: JSON.stringify({ email, password }),
+                }
             });
 
-            if (response.status === 200 && response.data?.Provider_token) {
-                storeTokenInLocalStorage(response.data.Provider_token, 'Provider_token');
+            if (response.status === 200 && response.data?.Admin_token) {
+                storeTokenInLocalStorage(response.data.Admin_token, 'Admin_token');
                 toast.success('Login successful.');
-                console.log('Login successful, navigating to /provider-dashboard');
-                navigate('/provider-dashboard');
+                navigate('/admin');
             } else {
-                // Handle unexpected response
-                console.log('Unexpected response: ', response);
                 toast.error('Failed to login: Unexpected response');
             }
 
         } catch (err) {
-            console.log('Some error occurred during signing in: ', err);
             toast.error(err.message || 'Failed to login');
         } finally {
             setIsLoading(false);
@@ -60,20 +55,20 @@ const LoginProvider = () => {
     return (
         <section className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 my-5">
-                <h2 className="text-center text-2xl font-bold mb-6">Provider Login</h2>
+                <h2 className="text-center text-2xl font-bold mb-6">Admin Login</h2>
                 <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
-                            Email
+                        <label htmlFor="username" className="block text-gray-700 font-bold mb-2">
+                            Username
                         </label>
                         <input
-                            type="email"
-                            id="email"
-                            name="email"
+                            type='text'
+                            id="username"
+                            name="username"
                             className="border rounded w-full py-2 px-3"
-                            placeholder="Email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                         />
                     </div>
@@ -105,4 +100,4 @@ const LoginProvider = () => {
     );
 }
 
-export default LoginProvider;
+export default AdminLogin;

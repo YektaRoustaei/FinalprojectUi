@@ -4,3 +4,9 @@
 
 /* Ensure the html and body take up the full height */
 /* TailwindCSS should handle this out of the box if configured correctly */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}

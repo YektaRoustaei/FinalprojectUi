@@ -1,4 +1,3 @@
-// App.js
 import {
     Route,
     createBrowserRouter,
@@ -21,6 +20,13 @@ import SeekerDashboard from "./screens/SeekerDashboard.jsx";
 import AddJob from "./screens/AddJob.jsx";
 import ProviderProtectedRoute from './Tokens/ProviderProtectedRoute.jsx';
 import SeekerProtectedRoute from './Tokens/SeekerProtectedRoute.jsx';
+import AdminProtectedRoute from "./Tokens/AdminProtectedRoute.jsx";
+import AdminDashboard from "./Admin/AdminDashboard.jsx";
+import AdminLogin from "./Admin/AdminLogin.jsx";
+import JobDetails from "./components/JobDetails.jsx";
+import CreatedJobs from "./components/CreatedJobs.jsx";
+import AppliedJobs from "./components/AppliedJobs.jsx";
+import SavedJobs from "./components/SavedJobs.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -28,6 +34,7 @@ const App = () => {
             <Route path='/' element={<MainLayout/>}>
                 <Route index element={<HomePage/>}/>
                 <Route path='/jobslist' element={<JobsList/>}/>
+                <Route path='/admin/login' element={<AdminLogin/>}/>
                 <Route path='/signup' element={<Signup />} />
                 <Route path='/signupSeeker' element={<SeekerSignUp />} />
                 <Route path='/signupProvider' element={<ProviderSignUp />} />
@@ -39,10 +46,35 @@ const App = () => {
                         <ProviderDashboard/>
                     </ProviderProtectedRoute>
                 } />
+                <Route path='/provider-dashboard/jobs' element={
+                    <ProviderProtectedRoute>
+                        <CreatedJobs/>
+                    </ProviderProtectedRoute>
+                } />
+                <Route path='/admin' element={
+                    <AdminProtectedRoute>
+                        <AdminDashboard/>
+                    </AdminProtectedRoute>
+                } />
                 <Route path="/add-job" element={
                     <ProviderProtectedRoute>
                         <AddJob />
                     </ProviderProtectedRoute>
+                } />
+                <Route path="jobslist/job/:id" element={
+                    <SeekerProtectedRoute>
+                        <JobDetails/>
+                    </SeekerProtectedRoute>
+                } />
+                <Route path="/seeker-dashboard/appliedjobs" element={
+                    <SeekerProtectedRoute>
+                        <AppliedJobs/>
+                    </SeekerProtectedRoute>
+                } />
+                <Route path="/seeker-dashboard/savedjobs" element={
+                    <SeekerProtectedRoute>
+                        <SavedJobs/>
+                    </SeekerProtectedRoute>
                 } />
                 <Route path='/seeker-dashboard' element={
                     <SeekerProtectedRoute>
@@ -51,12 +83,12 @@ const App = () => {
                 } />
             </Route>
         )
-    );
+    )
 
     return <>
-        <RouterProvider router={router} />;
+        <RouterProvider router={router} />
         <ToastContainer />
-    </>;
-};
+    </>
+}
 
 export default App;

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from 'axios';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 
 const AddJobPosting = () => {
     const navigate = useNavigate();
@@ -11,7 +12,28 @@ const AddJobPosting = () => {
     const [salary, setSalary] = useState("");
     const [type, setType] = useState("full-time"); // Default value set to 'full-time'
     const [location, setLocation] = useState("");
+    const [categories, setCategories] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        fetch('http://127.0.0.1:8000/api/categories')
+            .then(response => response.json())
+            .then(data => {
+                const formattedCategories = data.map(category => ({
+                    value: category.id,
+                    label: category.title
+                }));
+                setCategories(formattedCategories);
+            })
+            .catch(error => {
+                console.error('There was an error fetching the categories!', error);
+            });
+    }, []);
+
+    const handleCategoryChange = (selectedOptions) => {
+        setSelectedCategories(selectedOptions.map(option => option.value));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,24 +43,27 @@ const AddJobPosting = () => {
             description,
             salary,
             type,
-            location
+            location,
+            category_ids: selectedCategories
         };
 
         try {
             setIsLoading(true);
+            const token = localStorage.getItem('Provider_token');
             const response = await axios({
                 method: 'POST',
                 url: 'http://127.0.0.1:8000/api/provider/jobs/create',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
                 },
                 data: JSON.stringify(newJobPosting),
             });
             console.log('Response data:', response.data);
 
-            if (response.status === 200 && response.data && response.data.id) {
+            if (response.status === 201) {
                 toast.success("Job posting created successfully");
-                navigate('/job-postings');
+                navigate('/provider-dashboard');
             } else {
                 console.log('Unexpected response format:', response.data); // Debugging log
                 toast.error('Job posting creation failed. Please try again.');
@@ -93,7 +118,7 @@ const AddJobPosting = () => {
                     </div>
                     <div className="mb-4">
                         <label htmlFor="salary" className="block text-gray-700 font-bold mb-2">
-                            Salary per mounth
+                            Salary per month
                         </label>
                         <input
                             type="text"
@@ -125,6 +150,20 @@ const AddJobPosting = () => {
                         </select>
                     </div>
                     <div className="mb-4">
+                        <label htmlFor="category" className="block text-gray-700 font-bold mb-2">
+                            Category
+                        </label>
+                        <Select
+                            id="category"
+                            name="category"
+                            options={categories}
+                            onChange={handleCategoryChange}
+                            isMulti
+                            className="border rounded w-full py-2 px-3"
+                            required
+                        />
+                    </div>
+                    <div className="mb-4">
                         <label htmlFor="location" className="block text-gray-700 font-bold mb-2">
                             Location
                         </label>
@@ -136,11 +175,10 @@ const AddJobPosting = () => {
                             placeholder="Location"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-
                         />
                     </div>
-                    <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                        Add Job
+                    <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" disabled={isLoading}>
+                        {isLoading ? 'Adding...' : 'Add Job'}
                     </button>
                 </form>
             </div>
