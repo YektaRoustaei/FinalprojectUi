@@ -45,7 +45,7 @@ const SeekerSignUp = () => {
 
             if (response.status === 200 && response.data && response.data.id) {
                 toast.success("Registration successful");
-                navigate('/loginSeeker');
+                navigate('/loginseeker');
             } else {
                 console.log('Unexpected response format:', response.data); // Debugging log
                 toast.error('Registration failed. Please try again.');
@@ -117,7 +117,7 @@ const SeekerSignUp = () => {
                     </div>
                     <div className="mb-4">
                         <label htmlFor="address" className="block text-gray-700 font-bold mb-2">
-                            Address
+                            City
                         </label>
                         <input
                             type="text"

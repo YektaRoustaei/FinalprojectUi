@@ -27,6 +27,8 @@ import JobDetails from "./components/JobDetails.jsx";
 import CreatedJobs from "./components/CreatedJobs.jsx";
 import AppliedJobs from "./components/AppliedJobs.jsx";
 import SavedJobs from "./components/SavedJobs.jsx";
+import CV from "./screens/CV.jsx";
+import CVList from "./components/CVList.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -71,9 +73,19 @@ const App = () => {
                         <AppliedJobs/>
                     </SeekerProtectedRoute>
                 } />
+                <Route path="/seeker-dashboard/cvList" element={
+                    <SeekerProtectedRoute>
+                        <CVList/>
+                    </SeekerProtectedRoute>
+                } />
                 <Route path="/seeker-dashboard/savedjobs" element={
                     <SeekerProtectedRoute>
                         <SavedJobs/>
+                    </SeekerProtectedRoute>
+                } />
+                <Route path="/seeker/cv" element={
+                    <SeekerProtectedRoute>
+                        <CV/>
                     </SeekerProtectedRoute>
                 } />
                 <Route path='/seeker-dashboard' element={

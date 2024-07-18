@@ -65,6 +65,9 @@ const SeekerDashboard = () => {
     const navigateToAppliedJobs = () => {
         navigate('/seeker-dashboard/appliedjobs', { state: { appliedJobs: user.applied_jobs } });
     };
+    const navigateToCV = () => {
+        navigate('/seeker-dashboard/cvList', { state: { appliedJobs: user.applied_jobs } });
+    };
 
     return (
         <div className="bg-gray-100 min-h-screen p-8">
@@ -98,9 +101,23 @@ const SeekerDashboard = () => {
                             </div>
                         </div>
                         <div className="bg-white rounded-lg shadow-md p-4">
-                            <h2 className="text-lg font-semibold mb-4">Manage Applications</h2>
+                            <h2 className="text-lg font-semibold mb-4">Manage Account</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                    {/* eslint-disable-next-line react/no-unescaped-entities */}
+                                    <p className="text-lg font-semibold mb-2"> CV's </p>
+                                    <p className="text-gray-700">{user.curriculum_vitae.length}</p>
+                                    <button
+                                        onClick={navigateToCV}
+                                        className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white"
+                                    >
+                                        View All
+                                    </button>
+                                </div>
+
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Number of Applications</p>
                                     <p className="text-gray-700">{user.applied_jobs.length}</p>
                                     <button
@@ -110,7 +127,8 @@ const SeekerDashboard = () => {
                                         View Applications
                                     </button>
                                 </div>
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Saved Jobs</p>
                                     <p className="text-gray-700">{user.saved_jobs.length}</p>
                                     <button

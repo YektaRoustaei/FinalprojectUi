@@ -14,6 +14,8 @@ const AddJobPosting = () => {
     const [location, setLocation] = useState("");
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
+    const [requirements, setRequirements] = useState([]);
+    const [requirementInput, setRequirementInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -35,6 +37,23 @@ const AddJobPosting = () => {
         setSelectedCategories(selectedOptions.map(option => option.value));
     };
 
+    const handleRequirementChange = (e) => {
+        setRequirementInput(e.target.value);
+    };
+
+    const addRequirement = () => {
+        if (requirementInput.trim() !== "") {
+            setRequirements([...requirements, requirementInput.trim()]);
+            setRequirementInput("");
+        }
+    };
+
+    const removeRequirement = (index) => {
+        const newRequirements = [...requirements];
+        newRequirements.splice(index, 1);
+        setRequirements(newRequirements);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -44,7 +63,8 @@ const AddJobPosting = () => {
             salary,
             type,
             location,
-            category_ids: selectedCategories
+            category_ids: selectedCategories,
+            requirements
         };
 
         try {
@@ -176,6 +196,41 @@ const AddJobPosting = () => {
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                         />
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="requirements" className="block text-gray-700 font-bold mb-2">
+                            Job Requirements
+                        </label>
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="text"
+                                className="border rounded py-2 px-3 w-full"
+                                placeholder="Add a requirement"
+                                value={requirementInput}
+                                onChange={handleRequirementChange}
+                            />
+                            <button
+                                type="button"
+                                className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+                                onClick={addRequirement}
+                            >
+                                Add
+                            </button>
+                        </div>
+                        <div className="flex flex-wrap mt-2 space-x-2">
+                            {requirements.map((requirement, index) => (
+                                <div key={index} className="flex items-center bg-gray-200 px-2 py-1 rounded-full mb-2">
+                                    <span className="mr-2">{requirement}</span>
+                                    <button
+                                        type="button"
+                                        className="text-red-500 hover:text-red-700"
+                                        onClick={() => removeRequirement(index)}
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" disabled={isLoading}>
                         {isLoading ? 'Adding...' : 'Add Job'}
