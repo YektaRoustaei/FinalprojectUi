@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import SearchBox from "./SearchBox.jsx";
-import JobListCard from "./JobListCard.jsx";
 import FilterComponent from "./FilterComponent.jsx";
+import RecommendedCards from "./RecommendedCards.jsx";
+import JobListCard from "./JobListCard.jsx";
 import PropTypes from 'prop-types';
 import axios from "axios";
 
@@ -18,8 +19,8 @@ const JobsList = () => {
         fetch('http://127.0.0.1:8000/api/joblist')
             .then(response => response.json())
             .then(data => {
-                setJobs(data);
-                setFilteredJobs(data); // Initialize filteredJobs with all jobs
+                setJobs(Array.isArray(data) ? data : []);
+                setFilteredJobs(Array.isArray(data) ? data : []); // Initialize filteredJobs with an array
             })
             .catch(error => {
                 console.error('There was an error fetching the job postings!', error);
@@ -37,7 +38,7 @@ const JobsList = () => {
             })
                 .then(response => {
                     const { jobs } = response.data;
-                    setRecommendedJobs(jobs);
+                    setRecommendedJobs(Array.isArray(jobs) ? jobs : []);
                 })
                 .catch(error => {
                     console.error('There was an error fetching the recommended postings!', error);
@@ -49,7 +50,7 @@ const JobsList = () => {
         fetch('http://127.0.0.1:8000/api/companyList')
             .then(response => response.json())
             .then(data => {
-                setCompanies(data);
+                setCompanies(Array.isArray(data) ? data : []);
             })
             .catch(error => {
                 console.error('There was an error fetching the companies!', error);
@@ -72,7 +73,7 @@ const JobsList = () => {
                 );
             }
 
-            setFilteredJobs(filtered);
+            setFilteredJobs(Array.isArray(filtered) ? filtered : []); // Ensure filteredJobs is an array
         };
 
         filterJobs();
@@ -99,8 +100,8 @@ const JobsList = () => {
 
     const indexOfLastJob = currentPage * jobsPerPage;
     const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-    const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
-    const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+    const currentJobs = Array.isArray(filteredJobs) ? filteredJobs.slice(indexOfFirstJob, indexOfLastJob) : [];
+    const totalPages = Math.ceil(Array.isArray(filteredJobs) ? filteredJobs.length / jobsPerPage : 0);
 
     const uniqueLocations = [...new Set(companies.map(company => company.address))];
     const uniqueJobTypes = [...new Set(jobs.map(job => job.type))];
@@ -133,43 +134,47 @@ const JobsList = () => {
                     />
                 </div>
                 <div className="col-span-3">
-                    <div className="text-blue-950 font-bold">
-                        {filteredJobs.length} jobs found
-                    </div>
                     {recommendedJobs.length > 0 ? (
-                        recommendedJobs.map((job) => (
-                            <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
-                                <JobListCard
-                                    job={job}
-                                    companyName={getCompanyName(job.provider_id)}
-                                    address={getAddress(job.provider_id)}
-                                />
-                            </div>
-                        ))
-                    ) : (
-                        currentJobs.map((job) => (
-                            <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
-                                <JobListCard
-                                    job={job}
-                                    companyName={getCompanyName(job.provider_id)}
-                                    address={getAddress(job.provider_id)}
-                                />
-                            </div>
-                        ))
-                    )}
-                    <div className="flex justify-center mt-4">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={handlePageChange}
+                        <RecommendedCards
+                            jobs={recommendedJobs}
+                            companies={companies}
+                            getCompanyName={getCompanyName}
                         />
-                    </div>
+                    ) : (
+                        <>
+                            <div className="text-blue-950 font-bold">
+                                {filteredJobs.length} jobs found
+                            </div>
+                            {currentJobs.length > 0 ? (
+                                currentJobs.map((job) => (
+                                    <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
+                                        <JobListCard
+                                            job={job}
+                                            companyName={getCompanyName(job.provider_id)}
+                                            address={getAddress(job.provider_id)}
+                                            isRecommended={false}
+                                        />
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No jobs found.</p>
+                            )}
+                            <div className="flex justify-center mt-4">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             </section>
         </>
     );
 };
 
+// Pagination component
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -185,9 +190,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                     className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                 >
                     <span className="sr-only">Previous</span>
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                    </svg>
+                    &lt; {/* Use a simple HTML entity for the previous arrow */}
                 </button>
                 {pages.map(page => (
                     <button
@@ -204,9 +207,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                     className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                 >
                     <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                    </svg>
+                    &gt; {/* Use a simple HTML entity for the next arrow */}
                 </button>
             </nav>
         </div>

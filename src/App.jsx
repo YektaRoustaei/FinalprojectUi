@@ -29,6 +29,7 @@ import AppliedJobs from "./components/AppliedJobs.jsx";
 import SavedJobs from "./components/SavedJobs.jsx";
 import CV from "./screens/CV.jsx";
 import CVList from "./components/CVList.jsx";
+import RecommendDetail from "./components/RecommendDetail.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -66,6 +67,12 @@ const App = () => {
                 <Route path="jobslist/job/:id" element={
                     <SeekerProtectedRoute>
                         <JobDetails/>
+                    </SeekerProtectedRoute>
+                } />
+                <Route path="jobslist/recommendjob/:id" element={
+                    <SeekerProtectedRoute>
+                        {/* eslint-disable-next-line react/jsx-no-undef */}
+                        <RecommendDetail/>
                     </SeekerProtectedRoute>
                 } />
                 <Route path="/seeker-dashboard/appliedjobs" element={

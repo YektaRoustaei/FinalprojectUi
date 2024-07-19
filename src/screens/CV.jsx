@@ -10,7 +10,7 @@ const CV = () => {
     const [skills, setSkills] = useState([]);
     const [newSkill, setNewSkill] = useState('');
     const [selectedSkills, setSelectedSkills] = useState([]);
-    const [educations, setEducations] = useState([{ degree: '', institution: '',field_of_study: '', start_date: '', end_date: '' }]);
+    const [educations, setEducations] = useState([{ degree: '', institution: '', field_of_study: '', start_date: '', end_date: '' }]);
     const [jobExperiences, setJobExperiences] = useState([{ position: '', company_name: '', start_date: '', end_date: '', description: '' }]);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -42,7 +42,7 @@ const CV = () => {
 
     const handleAddNewSkill = () => {
         if (newSkill.trim() !== '') {
-            const newSkillObject = { label: newSkill, value: newSkill.toLowerCase().replace(/ /g, '-') };
+            const newSkillObject = { label: newSkill, value: null }; // value is null for new skills
             setSkills([...skills, newSkillObject]);
             setSelectedSkills([...selectedSkills, newSkillObject]);
             setNewSkill('');
@@ -70,7 +70,8 @@ const CV = () => {
 
         const newCV = {
             skills: selectedSkills.map(option => ({
-                id: option.value
+                id: option.value,
+                name: option.label
             })),
             educations,
             job_experiences: jobExperiences
@@ -203,9 +204,8 @@ const CV = () => {
                                     name="field_of_study"
                                     value={education.field_of_study}
                                     onChange={event => handleChange(index, event, educations, setEducations)}
-                                    placeholder="field of study"
+                                    placeholder="Field of Study"
                                     className="border rounded w-full py-2 px-3 mb-2"
-                                    required
                                 />
                                 <input
                                     type="text"
