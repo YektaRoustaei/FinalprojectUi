@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from 'axios';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
-import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 
 const AddJobPosting = () => {
     const navigate = useNavigate();
@@ -10,13 +10,13 @@ const AddJobPosting = () => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [salary, setSalary] = useState("");
-    const [type, setType] = useState("full-time"); // Default value set to 'full-time'
+    const [type, setType] = useState("full-time");
     const [location, setLocation] = useState("");
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [requirements, setRequirements] = useState([]);
-    const [requirementInput, setRequirementInput] = useState("");
+    const [jobskills, setJobskills] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [allJobskills, setAllJobskills] = useState([]);
 
     useEffect(() => {
         fetch('http://127.0.0.1:8000/api/categories')
@@ -31,32 +31,33 @@ const AddJobPosting = () => {
             .catch(error => {
                 console.error('There was an error fetching the categories!', error);
             });
+
+        fetch('http://127.0.0.1:8000/api/skills') // Updated API endpoint to fetch skills
+            .then(response => response.json())
+            .then(data => {
+                const formattedJobskills = data.map(skill => ({
+                    value: skill.id,
+                    label: skill.name // Use skill name from the response
+                }));
+                setAllJobskills(formattedJobskills);
+            })
+            .catch(error => {
+                console.error('There was an error fetching the job skills!', error);
+            });
     }, []);
 
     const handleCategoryChange = (selectedOptions) => {
         setSelectedCategories(selectedOptions.map(option => option.value));
     };
 
-    const handleRequirementChange = (e) => {
-        setRequirementInput(e.target.value);
-    };
-
-    const addRequirement = () => {
-        if (requirementInput.trim() !== "") {
-            setRequirements([...requirements, requirementInput.trim()]);
-            setRequirementInput("");
-        }
-    };
-
-    const removeRequirement = (index) => {
-        const newRequirements = [...requirements];
-        newRequirements.splice(index, 1);
-        setRequirements(newRequirements);
+    const handleJobskillChange = (newValue) => {
+        setJobskills(newValue.map(option => option.label));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Convert job skills to an array of skill names
         const newJobPosting = {
             title,
             description,
@@ -64,7 +65,7 @@ const AddJobPosting = () => {
             type,
             location,
             category_ids: selectedCategories,
-            requirements
+            jobskills // Send as skill names
         };
 
         try {
@@ -79,22 +80,16 @@ const AddJobPosting = () => {
                 },
                 data: JSON.stringify(newJobPosting),
             });
-            console.log('Response data:', response.data);
 
             if (response.status === 201) {
                 toast.success("Job posting created successfully");
                 navigate('/provider-dashboard');
             } else {
-                console.log('Unexpected response format:', response.data); // Debugging log
+                console.log('Unexpected response format:', response.data);
                 toast.error('Job posting creation failed. Please try again.');
             }
-
         } catch (err) {
-            console.log('Some error occurred during job posting creation: ', err);
-
-            if (err.response) {
-                console.error('Error response:', err.response.data); // Detailed error response
-            }
+            console.error('Some error occurred during job posting creation: ', err);
             toast.error('Job posting creation failed. Please try again.');
         } finally {
             setIsLoading(false);
@@ -173,14 +168,27 @@ const AddJobPosting = () => {
                         <label htmlFor="category" className="block text-gray-700 font-bold mb-2">
                             Category
                         </label>
-                        <Select
+                        <CreatableSelect
                             id="category"
                             name="category"
                             options={categories}
                             onChange={handleCategoryChange}
                             isMulti
                             className="border rounded w-full py-2 px-3"
-                            required
+                            placeholder="Select categories"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="jobskills" className="block text-gray-700 font-bold mb-2">
+                            Job Skills
+                        </label>
+                        <CreatableSelect
+                            id="jobskills"
+                            options={allJobskills}
+                            onChange={handleJobskillChange}
+                            isMulti
+                            className="border rounded w-full py-2 px-3"
+                            placeholder="Type or select job skills"
                         />
                     </div>
                     <div className="mb-4">
@@ -196,41 +204,6 @@ const AddJobPosting = () => {
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                         />
-                    </div>
-                    <div className="mb-4">
-                        <label htmlFor="requirements" className="block text-gray-700 font-bold mb-2">
-                            Job Requirements
-                        </label>
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="text"
-                                className="border rounded py-2 px-3 w-full"
-                                placeholder="Add a requirement"
-                                value={requirementInput}
-                                onChange={handleRequirementChange}
-                            />
-                            <button
-                                type="button"
-                                className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
-                                onClick={addRequirement}
-                            >
-                                Add
-                            </button>
-                        </div>
-                        <div className="flex flex-wrap mt-2 space-x-2">
-                            {requirements.map((requirement, index) => (
-                                <div key={index} className="flex items-center bg-gray-200 px-2 py-1 rounded-full mb-2">
-                                    <span className="mr-2">{requirement}</span>
-                                    <button
-                                        type="button"
-                                        className="text-red-500 hover:text-red-700"
-                                        onClick={() => removeRequirement(index)}
-                                    >
-                                        &times;
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                     <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" disabled={isLoading}>
                         {isLoading ? 'Adding...' : 'Add Job'}

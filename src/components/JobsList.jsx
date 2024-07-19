@@ -3,6 +3,7 @@ import SearchBox from "./SearchBox.jsx";
 import JobListCard from "./JobListCard.jsx";
 import FilterComponent from "./FilterComponent.jsx";
 import PropTypes from 'prop-types';
+import axios from "axios";
 
 const JobsList = () => {
     const [jobs, setJobs] = useState([]);
@@ -10,6 +11,7 @@ const JobsList = () => {
     const [filteredJobs, setFilteredJobs] = useState([]);
     const [selectedFilters, setSelectedFilters] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
+    const [recommendedJobs, setRecommendedJobs] = useState([]);
     const jobsPerPage = 10;
 
     useEffect(() => {
@@ -22,6 +24,25 @@ const JobsList = () => {
             .catch(error => {
                 console.error('There was an error fetching the job postings!', error);
             });
+    }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem('Seeker_token');
+
+        if (token) {
+            axios.get('http://127.0.0.1:8000/api/recommend', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    const { jobs } = response.data;
+                    setRecommendedJobs(jobs);
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the recommended postings!', error);
+                });
+        }
     }, []);
 
     useEffect(() => {
@@ -102,29 +123,40 @@ const JobsList = () => {
                     <div className="flex justify-center items-center mb-4">
                         <SearchBox />
                     </div>
-
                 </div>
             </section>
             <section className="container mx-auto grid grid-cols-4 gap-6">
-                <div className="col-span-1 bg-white p-2 rounded-lg shadow-md ">
+                <div className="col-span-1 bg-white p-2 rounded-lg shadow-md">
                     <FilterComponent
                         filters={filters}
                         onFilterChange={handleFilterChange}
                     />
                 </div>
                 <div className="col-span-3">
-                    <div className=" text-blue-950 font-bold">
+                    <div className="text-blue-950 font-bold">
                         {filteredJobs.length} jobs found
                     </div>
-                    {currentJobs.map((job) => (
-                        <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
-                            <JobListCard
-                                job={job}
-                                companyName={getCompanyName(job.provider_id)}
-                                address={getAddress(job.provider_id)}
-                            />
-                        </div>
-                    ))}
+                    {recommendedJobs.length > 0 ? (
+                        recommendedJobs.map((job) => (
+                            <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
+                                <JobListCard
+                                    job={job}
+                                    companyName={getCompanyName(job.provider_id)}
+                                    address={getAddress(job.provider_id)}
+                                />
+                            </div>
+                        ))
+                    ) : (
+                        currentJobs.map((job) => (
+                            <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
+                                <JobListCard
+                                    job={job}
+                                    companyName={getCompanyName(job.provider_id)}
+                                    address={getAddress(job.provider_id)}
+                                />
+                            </div>
+                        ))
+                    )}
                     <div className="flex justify-center mt-4">
                         <Pagination
                             currentPage={currentPage}
@@ -138,7 +170,7 @@ const JobsList = () => {
     );
 };
 
-const Pagination = ({currentPage, totalPages, onPageChange}) => {
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
