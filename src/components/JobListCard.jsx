@@ -1,13 +1,13 @@
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBriefcase, faSackDollar, faLocationDot, faBuilding } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
 
-const JobListCard = ({ job, companyName, address, isRecommended }) => {
+const JobListCard = ({ job, companyName, cityName, isRecommended }) => {
     const navigate = useNavigate();
 
     const handleCardClick = () => {
-        navigate(`/jobslist/job/${job.id}`, { state: { job, companyName, address } });
+        navigate(`/jobslist/job/${job.id}`, { state: { job, companyName, cityName } });
     };
 
     // Ensure salary is a number before formatting
@@ -24,22 +24,22 @@ const JobListCard = ({ job, companyName, address, isRecommended }) => {
             </div>
             <div className="space-y-2">
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faBuilding} className="mr-2"/>
+                    <FontAwesomeIcon icon={faBuilding} className="mr-2" />
                     <span>{companyName}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faSackDollar} className="mr-2"/>
+                    <FontAwesomeIcon icon={faSackDollar} className="mr-2" />
                     <span>${formattedSalary}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faBriefcase} className="mr-2"/>
+                    <FontAwesomeIcon icon={faBriefcase} className="mr-2" />
                     <span>{job.type}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faLocationDot} className="mr-2"/>
-                    <span>{address}</span>
+                    <FontAwesomeIcon icon={faLocationDot} className="mr-2" />
+                    <span>{cityName}</span>
                 </div>
-                <div className="flex items-center text-gray-700 dark:text-gray-400 line-clamp-2">
+                <div className="text-gray-700 dark:text-gray-400 mt-2 line-clamp-2">
                     <span>{job.description}</span>
                 </div>
             </div>
@@ -60,17 +60,15 @@ const JobListCard = ({ job, companyName, address, isRecommended }) => {
             </div>
         </div>
     );
-}
+};
 
 JobListCard.propTypes = {
     job: PropTypes.shape({
         id: PropTypes.number.isRequired,
         type: PropTypes.string.isRequired,
         title: PropTypes.string.isRequired,
-        salary: PropTypes.number.isRequired, // Changed to number for better handling
+        salary: PropTypes.number,
         description: PropTypes.string.isRequired,
-        location: PropTypes.string,
-        provider_id: PropTypes.number.isRequired,
         jobskills: PropTypes.arrayOf(PropTypes.shape({
             skill: PropTypes.shape({
                 id: PropTypes.number.isRequired,
@@ -79,7 +77,7 @@ JobListCard.propTypes = {
         })).isRequired
     }).isRequired,
     companyName: PropTypes.string.isRequired,
-    address: PropTypes.string.isRequired,
+    cityName: PropTypes.string.isRequired,
     isRecommended: PropTypes.bool
 };
 

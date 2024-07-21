@@ -33,21 +33,39 @@ const RecommendedCards = ({ jobs }) => {
                             <p className="text-sm text-gray-500 dark:text-gray-400">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.company_name}</span></p>
                         </div>
                         <div className="space-y-2">
-                            <div className="flex items-center text-gray-700 dark:text-gray-400 line-clamp-2">
-                                <span className="font-semibold">Description:</span>
-                                <span className="ml-2">{job.description}</span>
-
+                            <div className="flex items-center text-gray-700 dark:text-gray-400">
+                                <span className="font-semibold">Location:</span>
+                                <span className="ml-2">{job.location}</span>
                             </div>
+                            <div className="flex items-center text-gray-700 dark:text-gray-400">
+                                <span className="font-semibold">Salary:</span>
+                                <span className="ml-2">${job.salary}</span>
+                            </div>
+                            <div className="flex items-center text-gray-700 dark:text-gray-400">
+                                <span className="font-semibold">Job Type:</span>
+                                <span className="ml-2">{job.type}</span>
+                            </div>
+                            {job.distance > 0 && (
+                                <div className="flex items-center text-gray-700 dark:text-gray-400">
+                                    <span className="font-semibold">Distance:</span>
+                                    <span className="ml-2 text-red-500">
+                                        {Math.round(job.distance)} mile
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="mt-2 text-sm text-gray-700 dark:text-gray-400 truncate-lines-2">
+                            {job.description}
                         </div>
                         <div className="mt-4 flex flex-wrap">
-                            {job.job_skills && job.job_skills.length > 0 && job.job_skills.map((jobSkill, index) => {
-                                const isMatching = job.matching_skills.includes(jobSkill);
+                            {job.job_skills && job.job_skills.length > 0 && job.job_skills.map((skill, index) => {
+                                const isMatching = Object.values(job.matching_skills).includes(skill);
                                 return (
                                     <span
                                         key={index}
                                         className={`inline-block text-sm px-2 py-1 rounded-full mr-2 mb-2 ${isMatching ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-800'}`}
                                     >
-                                        {jobSkill}
+                                        {skill}
                                     </span>
                                 );
                             })}
@@ -77,10 +95,11 @@ RecommendedCards.propTypes = {
             description: PropTypes.string.isRequired,
             company_name: PropTypes.string.isRequired,
             job_skills: PropTypes.arrayOf(PropTypes.string).isRequired,
-            matching_skills: PropTypes.arrayOf(PropTypes.string).isRequired,
+            matching_skills: PropTypes.object.isRequired, // Adjusted to object
             location: PropTypes.string.isRequired,
-            salary: PropTypes.string,
-            type: PropTypes.string.isRequired
+            salary: PropTypes.number.isRequired, // Adjusted to number
+            type: PropTypes.string.isRequired,
+            distance: PropTypes.number.isRequired, // Ensure distance is included
         })
     ).isRequired
 };

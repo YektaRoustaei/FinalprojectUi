@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 import { useUser } from '../Tokens/customHooks';
 import { storeTokenInLocalStorage } from '../Tokens/common';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 const LoginSeeker = () => {
     const navigate = useNavigate();
@@ -42,8 +42,12 @@ const LoginSeeker = () => {
                 storeTokenInLocalStorage(response.data.Seeker_token, 'Seeker_token');
                 toast.success('Login successful.');
                 console.log('Login successful, navigating to /seeker-dashboard');
-                navigate('/seeker-dashboard');
+
+                // Navigate to the dashboard and refresh the page
+                navigate('/seeker-dashboard', { replace: true });
+                window.location.reload(); // Refresh the page
             } else {
+                // Handle unexpected response
                 console.log('Unexpected response: ', response);
                 toast.error('Failed to login: Unexpected response');
             }

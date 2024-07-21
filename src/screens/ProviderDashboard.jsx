@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom';
 const ProviderDashboard = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [jobCount, setJobCount] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -19,25 +18,8 @@ const ProviderDashboard = () => {
                 },
             })
                 .then(response => {
-                    const userData = response.data;
-                    setUser(userData);
-                    return userData.id;
-                })
-                .then(providerId => {
-                    axios.get('http://127.0.0.1:8000/api/joblist', {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    })
-                        .then(response => {
-                            const providerJobs = response.data.filter(job => job.provider_id === providerId);
-                            setJobCount(providerJobs.length);
-                            setLoading(false);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching jobs:', error);
-                            setLoading(false);
-                        });
+                    setUser(response.data);
+                    setLoading(false);
                 })
                 .catch(error => {
                     console.error('Error fetching user details:', error);
@@ -62,7 +44,7 @@ const ProviderDashboard = () => {
                     localStorage.removeItem('Provider_token');
                     setUser(null);
                     toast.success('Logout successful.');
-                    navigate('/login');
+                    window.location.reload(); // Refresh the page after logout
                 })
                 .catch(error => {
                     console.error('Error logging out:', error);
@@ -115,7 +97,7 @@ const ProviderDashboard = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Number of Created Jobs</p>
-                                    <p className="text-gray-700">{jobCount}</p>
+                                    <p className="text-gray-700">{user.job_count}</p>
                                     <button
                                         onClick={navigateToCreatedJobs}
                                         className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white"

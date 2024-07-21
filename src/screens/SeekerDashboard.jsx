@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from 'axios';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
@@ -45,7 +45,7 @@ const SeekerDashboard = () => {
                     localStorage.removeItem('Seeker_token');
                     setUser(null);
                     toast.success('Logout successful.');
-                    navigate('/loginseeker');
+                    window.location.reload(); // Refresh the page after logout
                 })
                 .catch(error => {
                     console.error('Error logging out:', error);
@@ -65,6 +65,7 @@ const SeekerDashboard = () => {
     const navigateToAppliedJobs = () => {
         navigate('/seeker-dashboard/appliedjobs', { state: { appliedJobs: user.applied_jobs } });
     };
+
     const navigateToCV = () => {
         navigate('/seeker-dashboard/cvList', { state: { appliedJobs: user.applied_jobs } });
     };

@@ -8,7 +8,6 @@ import axios from "axios";
 
 const JobsList = () => {
     const [jobs, setJobs] = useState([]);
-    const [companies, setCompanies] = useState([]);
     const [filteredJobs, setFilteredJobs] = useState([]);
     const [selectedFilters, setSelectedFilters] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
@@ -47,23 +46,12 @@ const JobsList = () => {
     }, []);
 
     useEffect(() => {
-        fetch('http://127.0.0.1:8000/api/companyList')
-            .then(response => response.json())
-            .then(data => {
-                setCompanies(Array.isArray(data) ? data : []);
-            })
-            .catch(error => {
-                console.error('There was an error fetching the companies!', error);
-            });
-    }, []);
-
-    useEffect(() => {
         const filterJobs = () => {
             let filtered = jobs;
 
             if (selectedFilters.location?.length) {
                 filtered = filtered.filter(job =>
-                    selectedFilters.location.includes(getAddress(job.provider_id))
+                    selectedFilters.location.includes(job.provider.city.city_name)
                 );
             }
 
@@ -80,13 +68,8 @@ const JobsList = () => {
     }, [jobs, selectedFilters]);
 
     const getCompanyName = (providerId) => {
-        const company = companies.find(company => company.id === providerId);
-        return company ? company.company_name : 'Unknown Company';
-    };
-
-    const getAddress = (providerId) => {
-        const company = companies.find(company => company.id === providerId);
-        return company ? company.address : 'Unknown Address';
+        const job = jobs.find(job => job.provider.id === providerId);
+        return job ? job.provider.company_name : 'Unknown Company';
     };
 
     const handleFilterChange = (filters) => {
@@ -103,7 +86,7 @@ const JobsList = () => {
     const currentJobs = Array.isArray(filteredJobs) ? filteredJobs.slice(indexOfFirstJob, indexOfLastJob) : [];
     const totalPages = Math.ceil(Array.isArray(filteredJobs) ? filteredJobs.length / jobsPerPage : 0);
 
-    const uniqueLocations = [...new Set(companies.map(company => company.address))];
+    const uniqueLocations = [...new Set(jobs.map(job => job.provider.city.city_name))];
     const uniqueJobTypes = [...new Set(jobs.map(job => job.type))];
 
     const filters = [
@@ -137,7 +120,6 @@ const JobsList = () => {
                     {recommendedJobs.length > 0 ? (
                         <RecommendedCards
                             jobs={recommendedJobs}
-                            companies={companies}
                             getCompanyName={getCompanyName}
                         />
                     ) : (
@@ -150,8 +132,8 @@ const JobsList = () => {
                                     <div key={job.id} className="hover:text-gray-800 dark:hover:text-gray-400 mb-4">
                                         <JobListCard
                                             job={job}
-                                            companyName={getCompanyName(job.provider_id)}
-                                            address={getAddress(job.provider_id)}
+                                            companyName={getCompanyName(job.provider.id)}
+                                            cityName={job.provider.city.city_name} // Pass cityName directly
                                             isRecommended={false}
                                         />
                                     </div>

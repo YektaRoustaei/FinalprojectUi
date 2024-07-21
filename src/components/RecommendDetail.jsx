@@ -96,6 +96,12 @@ const RecommendDetail = () => {
                     <FontAwesomeIcon icon={faLocationDot} className="mr-2" />
                     <span>{job.location}</span>
                 </div>
+                {job.distance > 0 && (
+                    <div className="flex items-center text-gray-700 dark:text-gray-400">
+                        <span className="text-red-500">Distance :</span>
+                        <span className="text-red-500">{Math.round(job.distance)} mile</span>
+                    </div>
+                )}
             </div>
             <p className="text-gray-700 dark:text-gray-400 mb-4">{job.description}</p>
             <div className="mt-4 flex flex-wrap">

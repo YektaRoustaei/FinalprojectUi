@@ -1,8 +1,31 @@
-import { Link} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const Navbar = () => {
+    const [userType, setUserType] = useState(null);
 
+    const checkUserType = () => {
+        const token1 = localStorage.getItem('Provider_token');
+        const token2 = localStorage.getItem('Seeker_token');
 
+        if (token1) {
+            setUserType('provider');
+        } else if (token2) {
+            setUserType('seeker');
+        } else {
+            setUserType(null);
+        }
+    };
+
+    useEffect(() => {
+        checkUserType();
+        // Adding event listeners for storage changes if using multiple tabs or windows
+        window.addEventListener('storage', checkUserType);
+
+        return () => {
+            window.removeEventListener('storage', checkUserType);
+        };
+    }, []);
 
     return (
         <nav className="bg-white border-gray-200 dark:bg-gray-900 border-b-2">
@@ -31,38 +54,84 @@ const Navbar = () => {
                                 Home
                             </Link>
                         </li>
-                        <li>
-                            <Link
-                                to="/jobslist"
-                                className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
-                            >
-                                Find Job
-                            </Link>
-                        </li>
-
-                            <li>
-                                <Link
-                                    to="/add-job"
-                                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
-                                >
-                                    Add Job
-                                </Link>
-                            </li>
-
+                        {userType === 'seeker' && (
                             <>
-
-
+                                <li>
+                                    <Link
+                                        to="/jobslist"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        Find Job
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/seeker/cv"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        CV
+                                    </Link>
+                                </li>
                             </>
-
+                        )}
+                        {userType === 'provider' && (
+                            <>
+                                <li>
+                                    <Link
+                                        to="/add-job"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        Add Job
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/all-jobs"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        All Jobs
+                                    </Link>
+                                </li>
+                            </>
+                        )}
+                        {userType && (
                             <li>
                                 <Link
-                                    to="/login"
+                                    to={userType === 'provider' ? "/provider-dashboard" : "/seeker-dashboard"}
                                     className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
                                 >
-                                    Login
+                                    Dashboard
                                 </Link>
                             </li>
-
+                        )}
+                        {userType === null && (
+                            <>
+                                <li>
+                                    <Link
+                                        to="/jobslist"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        Find Job
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/login"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        Login
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link
+                                        to="/signup"
+                                        className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent"
+                                    >
+                                        Sign up
+                                    </Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
                 </div>
             </div>

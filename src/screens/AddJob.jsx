@@ -11,7 +11,7 @@ const AddJobPosting = () => {
     const [description, setDescription] = useState("");
     const [salary, setSalary] = useState("");
     const [type, setType] = useState("full-time");
-    const [location, setLocation] = useState("");
+    // const [location, setLocation] = useState("");
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [jobskills, setJobskills] = useState([]);
@@ -32,12 +32,12 @@ const AddJobPosting = () => {
                 console.error('There was an error fetching the categories!', error);
             });
 
-        fetch('http://127.0.0.1:8000/api/skills') // Updated API endpoint to fetch skills
+        fetch('http://127.0.0.1:8000/api/skills')
             .then(response => response.json())
             .then(data => {
                 const formattedJobskills = data.map(skill => ({
                     value: skill.id,
-                    label: skill.name // Use skill name from the response
+                    label: skill.name
                 }));
                 setAllJobskills(formattedJobskills);
             })
@@ -191,20 +191,20 @@ const AddJobPosting = () => {
                             placeholder="Type or select job skills"
                         />
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="location" className="block text-gray-700 font-bold mb-2">
-                            Location
-                        </label>
-                        <input
-                            type="text"
-                            id="location"
-                            name="location"
-                            className="border rounded w-full py-2 px-3"
-                            placeholder="Location"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                        />
-                    </div>
+                    {/*<div className="mb-4">*/}
+                    {/*    <label htmlFor="location" className="block text-gray-700 font-bold mb-2">*/}
+                    {/*        Location*/}
+                    {/*    </label>*/}
+                    {/*    <input*/}
+                    {/*        type="text"*/}
+                    {/*        id="location"*/}
+                    {/*        name="location"*/}
+                    {/*        className="border rounded w-full py-2 px-3"*/}
+                    {/*        placeholder="Location"*/}
+                    {/*        value={location}*/}
+                    {/*        onChange={(e) => setLocation(e.target.value)}*/}
+                    {/*    />*/}
+                    {/*</div>*/}
                     <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" disabled={isLoading}>
                         {isLoading ? 'Adding...' : 'Add Job'}
                     </button>

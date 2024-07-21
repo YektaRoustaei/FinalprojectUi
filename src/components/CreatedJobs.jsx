@@ -1,4 +1,4 @@
-import  { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,24 +17,12 @@ const CreatedJobs = () => {
                 },
             })
                 .then(response => {
-                    const providerId = response.data.id;
-                    axios.get('http://127.0.0.1:8000/api/joblist', {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    })
-                        .then(response => {
-                            const providerJobs = response.data.filter(job => job.provider_id === providerId);
-                            setJobs(providerJobs);
-                            setLoading(false);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching jobs:', error);
-                            setLoading(false);
-                        });
+                    const providerJobs = response.data.jobs;
+                    setJobs(providerJobs);
+                    setLoading(false);
                 })
                 .catch(error => {
-                    console.error('Error fetching user details:', error);
+                    console.error('Error fetching provider info:', error);
                     setLoading(false);
                 });
         } else {
@@ -56,12 +44,11 @@ const CreatedJobs = () => {
                                 <p className="text-lg font-semibold mb-2">{job.title}</p>
                                 <p className="text-gray-700">{job.description}</p>
                                 <div className='flex justify-end'>
-
                                     <button
-                                        className='m-2 px-4 py-2 bg-green-700 text-white rounded hover:bg-green-900 transition duration-200'>edit job
+                                        className='m-2 px-4 py-2 bg-green-700 text-white rounded hover:bg-green-900 transition duration-200'>Edit Job
                                     </button>
                                     <button
-                                        className='m-2 px-4 py-2 bg-red-700 text-white  rounded hover:bg-red-900 transition duration-200'>delete
+                                        className='m-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition duration-200'>Delete
                                     </button>
                                 </div>
                             </div>

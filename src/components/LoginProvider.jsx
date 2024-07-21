@@ -12,7 +12,7 @@ const LoginProvider = () => {
     useEffect(() => {
         if (user || authenticated) {
             console.log('Navigating to /provider-dashboard');
-            navigate('/provider-dashboard');
+            navigate('/provider-dashboard', { replace: true });
         }
     }, [user, authenticated, navigate]);
 
@@ -42,7 +42,10 @@ const LoginProvider = () => {
                 storeTokenInLocalStorage(response.data.Provider_token, 'Provider_token');
                 toast.success('Login successful.');
                 console.log('Login successful, navigating to /provider-dashboard');
-                navigate('/provider-dashboard');
+
+                // Navigate to dashboard and refresh the page
+                navigate('/provider-dashboard', { replace: true });
+                window.location.reload(); // Refresh the page
             } else {
                 // Handle unexpected response
                 console.log('Unexpected response: ', response);

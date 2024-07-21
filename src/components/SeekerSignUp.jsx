@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +8,27 @@ const SeekerSignUp = () => {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
-    const [address, setAddress] = useState("");
-    const [phonenumber, setPhonenumber] = useState(""); // Updated to match backend expected field
+    const [phonenumber, setPhonenumber] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [cities, setCities] = useState([]);
+    const [selectedCity, setSelectedCity] = useState("");
+
+    useEffect(() => {
+        const fetchCities = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/cities');
+                setCities(response.data);
+            } catch (error) {
+                console.error('Error fetching cities:', error);
+                toast.error('Failed to load cities.');
+            }
+        };
+
+        fetchCities();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,24 +41,21 @@ const SeekerSignUp = () => {
         const newSeeker = {
             first_name: firstName,
             last_name: lastName,
-            address,
-            phonenumber, // Convert phonenumber to integer
+            phonenumber,
             email,
-            password
+            password,
+            city_id: selectedCity,
         };
 
         try {
             setIsLoading(true);
-            const response =  await axios({
-                method: 'POST',
-                url: 'http://127.0.0.1:8000/api/seeker/register',
+            const response = await axios.post('http://127.0.0.1:8000/api/seeker/register', newSeeker, {
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                data: JSON.stringify(newSeeker),
+                }
             });
 
-            if (response.status === 200 && response.data && response.data.id) {
+            if (response.status === 201 && response.data && response.data.id) {
                 toast.success("Registration successful");
                 navigate('/loginseeker');
             } else {
@@ -58,12 +70,10 @@ const SeekerSignUp = () => {
                 console.error('Error response:', err.response.data); // Detailed error response
             }
             toast.error('Registration failed. Please try again.');
-        }
-        finally {
+        } finally {
             setIsLoading(false);
         }
     };
-
 
     return (
         <section className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -116,19 +126,24 @@ const SeekerSignUp = () => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label htmlFor="address" className="block text-gray-700 font-bold mb-2">
+                        <label htmlFor="city" className="block text-gray-700 font-bold mb-2">
                             City
                         </label>
-                        <input
-                            type="text"
-                            id="address"
-                            name="address"
+                        <select
+                            id="city"
+                            name="city"
                             className="border rounded w-full py-2 px-3"
-                            placeholder="Address"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
+                            value={selectedCity}
+                            onChange={(e) => setSelectedCity(e.target.value)}
                             required
-                        />
+                        >
+                            <option value="">Select a city</option>
+                            {cities.map((city) => (
+                                <option key={city.id} value={city.id}>
+                                    {city.city_name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div className="mb-4">
                         <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
