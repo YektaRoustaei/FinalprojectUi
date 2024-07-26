@@ -1,15 +1,23 @@
-import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
+import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 const RecommendDetail = () => {
     const location = useLocation();
-    const { job } = location.state;
+    const navigate = useNavigate();
+    const { job } = location.state || {}; // Handle case where job might be undefined
     const [isSaved, setIsSaved] = useState(false);
     const [message, setMessage] = useState('');
     const token = localStorage.getItem('Seeker_token');
+
+    useEffect(() => {
+        if (job) {
+            // Optionally check if the job is already saved when the component mounts
+            // checkIfJobSaved();
+        }
+    }, [job]);
 
     if (!job) return <div>Loading...</div>;
 
@@ -77,16 +85,25 @@ const RecommendDetail = () => {
 
     return (
         <div className="p-6 bg-white border border-gray-300 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 m-4">
+            <div className="mb-4">
+                <button
+                    className="px-4 py-2 rounded-lg flex items-center border-2 border-blue-500"
+                    onClick={() => navigate('/jobslist')}
+                >
+                    <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+                    Back to Jobs List
+                </button>
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">{job.title}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.company_name}</span></p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.provider_name}</span></p>
             <div className="space-y-2 mb-4">
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
                     <FontAwesomeIcon icon={faBuilding} className="mr-2" />
-                    <span>{job.company_name}</span>
+                    <span>{job.provider_name}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
                     <FontAwesomeIcon icon={faSackDollar} className="mr-2" />
-                    <span>{job.salary}</span>
+                    <span>${job.salary}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
                     <FontAwesomeIcon icon={faBriefcase} className="mr-2" />
@@ -94,7 +111,7 @@ const RecommendDetail = () => {
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
                     <FontAwesomeIcon icon={faLocationDot} className="mr-2" />
-                    <span>{job.location}</span>
+                    <span>{job.provider_city}</span>
                 </div>
                 {job.distance > 0 && (
                     <div className="flex items-center text-gray-700 dark:text-gray-400">
@@ -106,7 +123,7 @@ const RecommendDetail = () => {
             <p className="text-gray-700 dark:text-gray-400 mb-4">{job.description}</p>
             <div className="mt-4 flex flex-wrap">
                 {job.job_skills && job.job_skills.length > 0 && job.job_skills.map((jobSkill, index) => {
-                    const isMatching = job.matching_skills.includes(jobSkill);
+                    const isMatching = job.matching_skills && job.matching_skills[jobSkill];
                     return (
                         <span
                             key={index}

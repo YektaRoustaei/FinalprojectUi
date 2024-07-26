@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 
-const FilterComponent = ({ onFilterChange }) => {
+const FilterComponentWithToken = ({ onFilterChange }) => {
     const [cities, setCities] = useState([]);
     const [jobTypes, setJobTypes] = useState([]);
     const [selectedCities, setSelectedCities] = useState([]);
@@ -12,24 +12,15 @@ const FilterComponent = ({ onFilterChange }) => {
     useEffect(() => {
         const fetchFilters = async () => {
             try {
-                // Determine which API endpoint to call based on token presence
-                const url = token
-                    ? 'http://127.0.0.1:8000/api/recommend'
-                    : 'http://127.0.0.1:8000/api/search';
-
-                // Fetch data
-                const response = await axios.get(url, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {}
+                const response = await axios.get('http://127.0.0.1:8000/api/recommend', {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
 
-                // Extract jobs from response
                 const jobs = response.data.jobs || [];
 
-                // Extract unique cities and job types from the job data
                 const uniqueCities = [...new Set(jobs.map(job => job.provider_city).filter(Boolean))];
                 const uniqueJobTypes = [...new Set(jobs.map(job => job.type).filter(Boolean))];
 
-                // Update state with extracted data
                 setCities(uniqueCities);
                 setJobTypes(uniqueJobTypes);
             } catch (error) {
@@ -69,8 +60,10 @@ const FilterComponent = ({ onFilterChange }) => {
     };
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-xs">
-            <div className="mb-6">
+        <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-xs mt-10 border-t-2">
+            <h2 className="text-2xl font-bold mb-4 ">Filters</h2>
+
+            <div className="mb-6  border-b-2">
                 <h3 className="text-lg font-semibold mb-2">City</h3>
                 {cities.length > 0 ? (
                     cities.map((city, index) => (
@@ -83,7 +76,8 @@ const FilterComponent = ({ onFilterChange }) => {
                                 checked={selectedCities.includes(city)}
                                 className="mr-2 h-4 w-4 border-gray-300 rounded"
                             />
-                            <label htmlFor={`city-${index}`} className="text-sm font-medium text-gray-700">{city}</label>
+                            <label htmlFor={`city-${index}`}
+                                   className="text-sm font-medium text-gray-700">{city}</label>
                         </div>
                     ))
                 ) : (
@@ -91,7 +85,7 @@ const FilterComponent = ({ onFilterChange }) => {
                 )}
             </div>
             <div>
-                <h3 className="text-lg font-semibold mb-2">Job Type</h3>
+                <h3 className="text-lg font-semibold mb-2 border-b-2">Job Type</h3>
                 {jobTypes.length > 0 ? (
                     jobTypes.map((type, index) => (
                         <div key={index} className="flex items-center mb-2">
@@ -103,7 +97,8 @@ const FilterComponent = ({ onFilterChange }) => {
                                 checked={selectedJobTypes.includes(type)}
                                 className="mr-2 h-4 w-4 border-gray-300 rounded"
                             />
-                            <label htmlFor={`job-type-${index}`} className="text-sm font-medium text-gray-700">{type}</label>
+                            <label htmlFor={`job-type-${index}`}
+                                   className="text-sm font-medium text-gray-700">{type}</label>
                         </div>
                     ))
                 ) : (
@@ -114,8 +109,8 @@ const FilterComponent = ({ onFilterChange }) => {
     );
 };
 
-FilterComponent.propTypes = {
+FilterComponentWithToken.propTypes = {
     onFilterChange: PropTypes.func.isRequired
 };
 
-export default FilterComponent;
+export default FilterComponentWithToken;

@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { useNavigate } from 'react-router-dom';
 
-const RecommendedCards = ({ jobs }) => {
+const RecommendedCards = ({ jobs = [] }) => {
     const navigate = useNavigate();
 
     const handleCardClick = (job) => {
@@ -9,8 +9,8 @@ const RecommendedCards = ({ jobs }) => {
             state: {
                 job: {
                     ...job,
-                    companyName: job.company_name,
-                    address: job.location,
+                    companyName: job.provider_name,
+                    address: job.provider_city,
                     salary: job.salary,
                     jobSkills: job.job_skills,
                     jobType: job.type
@@ -20,8 +20,8 @@ const RecommendedCards = ({ jobs }) => {
     };
 
     return (
-        <section className="container mx-auto grid grid-cols-1 gap-6 mb-6">
-            <h2 className="text-2xl font-bold mb-4">Recommended Jobs</h2>
+        <section className="container mx-auto grid grid-cols-1 gap-6 ">
+            <h2 className="text-2xl font-bold">Recommended Jobs</h2>
             {jobs.length > 0 ? (
                 jobs.map((job) => (
                     <div
@@ -30,12 +30,12 @@ const RecommendedCards = ({ jobs }) => {
                     >
                         <div className="mb-4">
                             <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{job.title}</h5>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.company_name}</span></p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.provider_name}</span></p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center text-gray-700 dark:text-gray-400">
                                 <span className="font-semibold">Location:</span>
-                                <span className="ml-2">{job.location}</span>
+                                <span className="ml-2">{job.provider_city}</span>
                             </div>
                             <div className="flex items-center text-gray-700 dark:text-gray-400">
                                 <span className="font-semibold">Salary:</span>
@@ -58,8 +58,8 @@ const RecommendedCards = ({ jobs }) => {
                             {job.description}
                         </div>
                         <div className="mt-4 flex flex-wrap">
-                            {job.job_skills && job.job_skills.length > 0 && job.job_skills.map((skill, index) => {
-                                const isMatching = Object.values(job.matching_skills).includes(skill);
+                            {Array.isArray(job.job_skills) && job.job_skills.length > 0 && job.job_skills.map((skill, index) => {
+                                const isMatching = job.matching_skills && Object.values(job.matching_skills).includes(skill);
                                 return (
                                     <span
                                         key={index}
@@ -93,13 +93,13 @@ RecommendedCards.propTypes = {
             id: PropTypes.number.isRequired,
             title: PropTypes.string.isRequired,
             description: PropTypes.string.isRequired,
-            company_name: PropTypes.string.isRequired,
+            provider_name: PropTypes.string.isRequired,
             job_skills: PropTypes.arrayOf(PropTypes.string).isRequired,
-            matching_skills: PropTypes.object.isRequired, // Adjusted to object
-            location: PropTypes.string.isRequired,
-            salary: PropTypes.number.isRequired, // Adjusted to number
+            matching_skills: PropTypes.object.isRequired,
+            provider_city: PropTypes.string.isRequired,
+            salary: PropTypes.number.isRequired,
             type: PropTypes.string.isRequired,
-            distance: PropTypes.number.isRequired, // Ensure distance is included
+            distance: PropTypes.number.isRequired,
         })
     ).isRequired
 };
