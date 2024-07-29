@@ -105,15 +105,7 @@ const ProviderDashboard = () => {
                                         Manage All Jobs
                                     </button>
                                 </div>
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
-                                    <p className="text-lg font-semibold mb-2">Number of Applicants</p>
-                                    <p className="text-gray-700">...</p>
-                                    <button
-                                        className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white"
-                                    >
-                                        Manage Applicants
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
                     </div>

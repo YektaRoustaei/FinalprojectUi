@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Popup from './Popup';
 import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 const RecommendDetail = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { job } = location.state || {}; // Handle case where job might be undefined
+    const { job } = location.state || {};
     const [isSaved, setIsSaved] = useState(false);
     const [message, setMessage] = useState('');
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [curriculumVitaeId, setCurriculumVitaeId] = useState(null);
+    const [coverLetterId, setCoverLetterId] = useState(null);
     const token = localStorage.getItem('Seeker_token');
 
     useEffect(() => {
@@ -42,7 +46,7 @@ const RecommendDetail = () => {
             setMessage(response.data.message);
         } catch (error) {
             setMessage('Failed to save the job.');
-            console.error(error);
+            console.error('Save job error:', error.response ? error.response.data : error.message);
         }
     };
 
@@ -59,14 +63,20 @@ const RecommendDetail = () => {
             setMessage(response.data.message);
         } catch (error) {
             setMessage('Failed to unsave the job.');
-            console.error(error);
+            console.error('Unsave job error:', error.response ? error.response.data : error.message);
         }
     };
 
-    const handleApplyClick = async () => {
+    const applyForJob = async (cvId, coverLetterId) => {
+        console.log('Applying with job_id:', job.id);
+
         try {
+            console.log('Applying with job_id:', job.id, 'cv_id:', cvId, 'cover_letter_id:', coverLetterId);
             const response = await axios.post('http://127.0.0.1:8000/api/seeker/jobs/apply', {
-                job_id: job.id
+                job_id: job.id,
+
+                curriculum_vitae_id: cvId,
+                cover_letter_id: coverLetterId,
             }, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -74,13 +84,23 @@ const RecommendDetail = () => {
             });
             setMessage(response.data.message);
         } catch (error) {
-            if (error.response && error.response.status === 401) {
-                setMessage('Unauthorized. Please log in again.');
-            } else {
-                setMessage('Failed to apply for the job.');
-            }
-            console.error(error);
+            const errorMessage = error.response && error.response.data && error.response.data.message
+                ? error.response.data.message
+                : 'Failed to apply for the job.';
+            setMessage(errorMessage);
+            console.error('Apply job error:', error.response ? error.response.data : error.message);
         }
+    };
+
+    const handleApplyClick = () => {
+        setIsPopupOpen(true); // Open the pop-up
+    };
+
+    const handleApplySubmit = (cvId, coverLetterId) => {
+        setCurriculumVitaeId(cvId);
+        setCoverLetterId(coverLetterId);
+        applyForJob(cvId, coverLetterId); // Submit the job application
+        setIsPopupOpen(false); // Close the pop-up after submission
     };
 
     return (
@@ -145,6 +165,12 @@ const RecommendDetail = () => {
                     {isSaved ? 'Unsave' : 'Save'}
                 </button>
             </div>
+            {isPopupOpen && (
+                <Popup
+                    onClose={() => setIsPopupOpen(false)}
+                    onSubmit={handleApplySubmit}
+                />
+            )}
         </div>
     );
 };
