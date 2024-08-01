@@ -1,39 +1,86 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useNavigate, useParams } from 'react-router-dom';
 import Select from 'react-select';
 
-const CV = () => {
+const EditCv = () => {
+    const { id } = useParams();
     const navigate = useNavigate();
-
     const [skills, setSkills] = useState([]);
     const [newSkill, setNewSkill] = useState('');
     const [selectedSkills, setSelectedSkills] = useState([]);
-    const [educations, setEducations] = useState([{ degree: '', institution: '', field_of_study: '', start_date: '', end_date: '', until_now: false }]);
-    const [jobExperiences, setJobExperiences] = useState([{ position: '', company_name: '', start_date: '', end_date: '', description: '', until_now: false }]);
+    const [educations, setEducations] = useState([]);
+    const [jobExperiences, setJobExperiences] = useState([]);
+    const [cvData, setCvData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedCvId, setSelectedCvId] = useState(null);
+    const token = localStorage.getItem('Seeker_token');
 
     useEffect(() => {
         fetchSkills();
-    }, []);
+        fetchCvData();
+    }, [id]);
 
-    const fetchSkills = () => {
-        axios.get('http://127.0.0.1:8000/api/skills')
-            .then(response => {
-                const formattedSkills = response.data.map(skill => ({
-                    value: skill.id,
-                    label: skill.name
-                }));
-                setSkills(formattedSkills);
-            })
-            .catch(error => {
-                console.error('There was an error fetching the skills!', error);
+    const fetchSkills = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/skills');
+            const formattedSkills = response.data.map(skill => ({
+                value: skill.id,
+                label: skill.name
+            }));
+            setSkills(formattedSkills);
+        } catch (error) {
+            console.error('Error fetching skills:', error);
+            toast.error('Failed to load skills.');
+        }
+    };
+
+    const fetchCvData = async () => {
+        try {
+            const response = await axios.get('http://127.0.0.1:8000/api/seeker/get-info', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
+
+            const cvArray = response.data.curriculum_vitae;
+
+            if (cvArray.length > 0) {
+                const cv = cvArray.find(cv => cv.id === parseInt(id));
+                if (cv) {
+                    const formattedSkills = cv.seeker_skills.map(skill => ({
+                        value: skill.skill.id,
+                        label: skill.skill.name
+                    }));
+
+                    setSelectedSkills(formattedSkills);
+                    setEducations(cv.educations.map(ed => ({
+                        id: ed.id,
+                        ...ed,
+                        until_now: ed.end_date === '' || ed.end_date === 'until now'
+                    })));
+                    setJobExperiences(cv.jobExperiences.map(job => ({
+                        id: job.id,
+                        ...job,
+                        until_now: job.end_date === '' || job.end_date === 'until now'
+                    })));
+                    setCvData(cv);
+                    setSelectedCvId(cv.id);
+                } else {
+                    throw new Error('CV not found.');
+                }
+            } else {
+                throw new Error('No CVs available.');
+            }
+        } catch (error) {
+            console.error('Error fetching CV data:', error);
+            toast.error(`Failed to load CV data: ${error.message}`);
+        }
     };
 
     const handleSkillChange = (selectedOptions) => {
-        setSelectedSkills(selectedOptions);
+        setSelectedSkills(selectedOptions || []);
     };
 
     const handleNewSkillChange = (e) => {
@@ -42,7 +89,7 @@ const CV = () => {
 
     const handleAddNewSkill = () => {
         if (newSkill.trim() !== '') {
-            const newSkillObject = { label: newSkill, value: null }; // value is null for new skills
+            const newSkillObject = { label: newSkill, value: null };
             setSkills([...skills, newSkillObject]);
             setSelectedSkills([...selectedSkills, newSkillObject]);
             setNewSkill('');
@@ -57,8 +104,9 @@ const CV = () => {
 
     const handleCheckboxChange = (index, event, state, setState) => {
         const values = [...state];
-        values[index].until_now = event.target.checked;
-        values[index].end_date = event.target.checked ? '' : values[index].end_date;
+        const isChecked = event.target.checked;
+        values[index].until_now = isChecked;
+        values[index].end_date = isChecked ? null : values[index].end_date; // Set end_date to null if checked
         setState(values);
     };
 
@@ -75,47 +123,48 @@ const CV = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const newCV = {
+        const updatedCV = {
+            cv_id: selectedCvId,
             skills: selectedSkills.map(option => ({
                 id: option.value,
                 name: option.label
             })),
             educations: educations.map(education => ({
-                ...education,
+                id: education.id,
+                degree: education.degree,
+                institution: education.institution,
+                field_of_study: education.field_of_study,
+                start_date: education.start_date,
                 end_date: education.until_now ? null : education.end_date
             })),
             job_experiences: jobExperiences.map(jobExperience => ({
-                ...jobExperience,
-                end_date: jobExperience.until_now ? null : jobExperience.end_date
+                id: jobExperience.id,
+                position: jobExperience.position,
+                company_name: jobExperience.company_name,
+                start_date: jobExperience.start_date,
+                end_date: jobExperience.until_now ? null : jobExperience.end_date,
+                description: jobExperience.description
             }))
         };
 
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('Seeker_token');
-            const response = await axios({
-                method: 'POST',
-                url: 'http://127.0.0.1:8000/api/seeker/cv/create',
+            const response = await axios.put(`http://127.0.0.1:8000/api/seeker/cv/update`, updatedCV, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                data: JSON.stringify(newCV),
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
-            if (response.status === 201) {
-                toast.success("CV created successfully");
+            if (response.status === 200) {
+                toast.success("CV updated successfully");
                 navigate('/seeker-dashboard');
             } else {
-                toast.error('CV creation failed. Please try again.');
+                toast.error('CV update failed. Please try again.');
             }
-
         } catch (err) {
-            console.error('Some error occurred during CV creation: ', err);
-            if (err.response) {
-                console.error('Error response:', err.response.data);
-            }
-            toast.error('CV creation failed. Please try again.');
+            console.error('Error during CV update:', err);
+            toast.error('CV update failed. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -124,7 +173,7 @@ const CV = () => {
     return (
         <section className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 my-5">
-                <h2 className="text-center text-2xl font-bold mb-6">Create Your CV</h2>
+                <h2 className="text-center text-2xl font-bold mb-6">Edit Your CV</h2>
                 <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-gray-700 font-bold mb-2">Skills</label>
@@ -205,10 +254,10 @@ const CV = () => {
                                 <button type="button" onClick={() => handleRemove(index, jobExperiences, setJobExperiences)} className="text-red-500">Remove</button>
                             </div>
                         ))}
-                        <button type="button" onClick={() => handleAdd(jobExperiences, setJobExperiences, { position: '', company_name: '', start_date: '', end_date: '', description: '', until_now: false })} className="text-blue-500">Add Job Experience</button>
+                        <button type="button" onClick={() => handleAdd(jobExperiences, setJobExperiences, { id: null, position: '', company_name: '', start_date: '', end_date: '', description: '', until_now: false })} className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Add Job Experience</button>
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700 font-bold mb-2">Education</label>
+                        <label className="block text-gray-700 font-bold mb-2">Educations</label>
                         {educations.map((education, index) => (
                             <div key={index} className="mb-2">
                                 <input
@@ -219,14 +268,6 @@ const CV = () => {
                                     placeholder="Degree"
                                     className="border rounded w-full py-2 px-3 mb-2"
                                     required
-                                />
-                                <input
-                                    type="text"
-                                    name="field_of_study"
-                                    value={education.field_of_study}
-                                    onChange={event => handleChange(index, event, educations, setEducations)}
-                                    placeholder="Field of Study"
-                                    className="border rounded w-full py-2 px-3 mb-2"
                                 />
                                 <input
                                     type="text"
@@ -264,19 +305,24 @@ const CV = () => {
                                         className="border rounded w-full py-2 px-3 mb-2"
                                     />
                                 )}
+                                <textarea
+                                    name="description"
+                                    value={education.description}
+                                    onChange={event => handleChange(index, event, educations, setEducations)}
+                                    placeholder="Education Description"
+                                    className="border rounded w-full py-2 px-3 mb-2"
+                                ></textarea>
                                 <button type="button" onClick={() => handleRemove(index, educations, setEducations)} className="text-red-500">Remove</button>
                             </div>
                         ))}
-                        <button type="button" onClick={() => handleAdd(educations, setEducations, {
-                            degree: '',
-                            institution: '',
-                            start_date: '',
-                            end_date: '',
-                            until_now: false
-                        })} className="text-blue-500">Add Education</button>
+                        <button type="button" onClick={() => handleAdd(educations, setEducations, { id: null, degree: '', institution: '', start_date: '', end_date: '', description: '', until_now: false })} className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Add Education</button>
                     </div>
-                    <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" disabled={isLoading}>
-                        {isLoading ? 'Creating...' : 'Create CV'}
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className={`w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isLoading ? 'Updating...' : 'Update CV'}
                     </button>
                 </form>
             </div>
@@ -284,4 +330,4 @@ const CV = () => {
     );
 };
 
-export default CV;
+export default EditCv;

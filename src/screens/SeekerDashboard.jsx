@@ -45,7 +45,7 @@ const SeekerDashboard = () => {
                     localStorage.removeItem('Seeker_token');
                     setUser(null);
                     toast.success('Logout successful.');
-                    window.location.reload(); // Refresh the page after logout
+                    navigate('/loginseeker'); // Redirect to login page after logout
                 })
                 .catch(error => {
                     console.error('Error logging out:', error);
@@ -54,8 +54,7 @@ const SeekerDashboard = () => {
     };
 
     const handleEditProfile = () => {
-        // Implement edit profile functionality here
-        console.log('Editing profile...');
+        navigate('/seeker/edit');
     };
 
     const navigateToSavedJobs = () => {
@@ -68,6 +67,28 @@ const SeekerDashboard = () => {
 
     const navigateToCV = () => {
         navigate('/seeker-dashboard/cvList', { state: { appliedJobs: user.applied_jobs } });
+    };
+
+    const handleDeleteProfile = () => {
+        const token = localStorage.getItem('Seeker_token');
+
+        if (token) {
+            axios.delete('http://127.0.0.1:8000/api/seeker/delete', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then(() => {
+                    localStorage.removeItem('Seeker_token');
+                    setUser(null);
+                    toast.success('Profile deleted successfully.');
+                    navigate('/'); // Redirect to login page after deletion
+                })
+                .catch(error => {
+                    console.error('Error deleting profile:', error);
+                    toast.error('Failed to delete profile.');
+                });
+        }
     };
 
     return (
@@ -91,7 +112,15 @@ const SeekerDashboard = () => {
                                 <div>{user.address}</div>
                                 <div className="font-medium">Telephone:</div>
                                 <div>{user.phonenumber}</div>
-                                <div className="col-span-2 flex justify-end">
+                                <div className="flex justify-start col-span-1 mt-10">
+                                    <button
+                                        onClick={handleDeleteProfile}
+                                        className="border-red-600 border-2 px-4 py-2 rounded-lg hover:bg-red-800 hover:text-white transition duration-200"
+                                    >
+                                        Delete Profile
+                                    </button>
+                                </div>
+                                <div className="flex justify-start mt-10">
                                     <button
                                         onClick={handleEditProfile}
                                         className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition duration-200"
@@ -104,10 +133,8 @@ const SeekerDashboard = () => {
                         <div className="bg-white rounded-lg shadow-md p-4">
                             <h2 className="text-lg font-semibold mb-4">Manage Account</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <div
-                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
-                                    {/* eslint-disable-next-line react/no-unescaped-entities */}
-                                    <p className="text-lg font-semibold mb-2"> CV's </p>
+                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                    <p className="text-lg font-semibold mb-2">CV's</p>
                                     <p className="text-gray-700">{user.curriculum_vitae.length}</p>
                                     <button
                                         onClick={navigateToCV}
@@ -117,8 +144,7 @@ const SeekerDashboard = () => {
                                     </button>
                                 </div>
 
-                                <div
-                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Number of Applications</p>
                                     <p className="text-gray-700">{user.applied_jobs.length}</p>
                                     <button
@@ -128,8 +154,7 @@ const SeekerDashboard = () => {
                                         View Applications
                                     </button>
                                 </div>
-                                <div
-                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Saved Jobs</p>
                                     <p className="text-gray-700">{user.saved_jobs.length}</p>
                                     <button

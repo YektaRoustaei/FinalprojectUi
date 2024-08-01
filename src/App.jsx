@@ -32,6 +32,8 @@ import CVList from "./components/CVList.jsx";
 import RecommendDetail from "./components/RecommendDetail.jsx";
 import UpdateJobPosting from "./components/UpdateJobPosting.jsx";
 import Applications from "./components/Applications.jsx";
+import EditSeekerInfo from "./components/EditSeekerInfo.jsx";
+import EditCv from "./components/EditCv.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -47,6 +49,7 @@ const App = () => {
                 <Route path='/loginprovider' element={<LoginProvider />} />
                 <Route path='/loginseeker' element={<LoginSeeker/>} />
                 <Route path='/updatejob/:id' element={<UpdateJobPosting/>} />
+                <Route path='/seeker/edit' element={<EditSeekerInfo/>} />
                 <Route path='/provider-dashboard' element={
                     <ProviderProtectedRoute>
                         <ProviderDashboard/>
@@ -94,6 +97,13 @@ const App = () => {
                         <CVList/>
                     </SeekerProtectedRoute>
                 } />
+
+                <Route path="/seeker-dashboard/editcv/:id" element={
+                    <SeekerProtectedRoute>
+                        <EditCv/>
+                    </SeekerProtectedRoute>
+                } />
+
                 <Route path="/seeker-dashboard/savedjobs" element={
                     <SeekerProtectedRoute>
                         <SavedJobs/>

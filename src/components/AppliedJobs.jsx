@@ -9,7 +9,7 @@ const AppliedJobs = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('Provider_token');
+        const token = localStorage.getItem('Seeker_token');
 
         if (token) {
             axios.get('http://127.0.0.1:8000/api/seeker/get-info', {
@@ -17,8 +17,11 @@ const AppliedJobs = () => {
             })
                 .then(response => {
                     const jobs = response.data.applied_jobs;
+                    console.log('Fetched applied jobs:', jobs);  // Debugging line
                     setAppliedJobs(jobs);
-                    fetchJobDetails(jobs.map(job => job.job_id));
+                    if (jobs.length > 0) {
+                        fetchJobDetails(jobs.map(job => job.job_id));
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching applied jobs:', error);
@@ -28,7 +31,6 @@ const AppliedJobs = () => {
                 });
         } else {
             setLoading(false);
-            navigate('/loginseeker');
         }
     }, [navigate]);
 

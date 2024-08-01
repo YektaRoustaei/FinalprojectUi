@@ -2,8 +2,8 @@ import HeroSearchBox from './HeroSearchBox.jsx';
 
 const Hero = () => {
     return (
-        <section className="bg-white dark:bg-gray-900">
-            <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-4 lg:px-12">
+        <section className="bg-white dark:bg-gray-900 w-full">
+            <div className="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-4 lg:px-0">
                 <h1 className="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
                     Find jobs based on your skills
                 </h1>
