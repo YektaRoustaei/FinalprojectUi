@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const SeekerDashboard = () => {
     const [user, setUser] = useState(null);
+    const [recommendedJobCount, setRecommendedJobCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -26,6 +27,19 @@ const SeekerDashboard = () => {
                     console.error('Error fetching user details:', error);
                     setLoading(false);
                 });
+
+            // Fetch recommended jobs count
+            axios.get('http://127.0.0.1:8000/api/seekeralert', {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    setRecommendedJobCount(response.data.jobs.length);
+                })
+                .catch(error => {
+                    console.error('Error fetching recommended jobs:', error);
+                });
         } else {
             setLoading(false);
             navigate('/loginseeker');
@@ -46,6 +60,7 @@ const SeekerDashboard = () => {
                     setUser(null);
                     toast.success('Logout successful.');
                     navigate('/loginseeker'); // Redirect to login page after logout
+                    window.location.reload(); // Refresh the page
                 })
                 .catch(error => {
                     console.error('Error logging out:', error);
@@ -55,6 +70,10 @@ const SeekerDashboard = () => {
 
     const handleEditProfile = () => {
         navigate('/seeker/edit');
+    };
+
+    const navigateToJobAllert = () => {
+        navigate('/seeker-dashboard/joballert');
     };
 
     const navigateToSavedJobs = () => {
@@ -102,12 +121,13 @@ const SeekerDashboard = () => {
                         <div className="bg-white rounded-lg shadow-md p-4">
                             <h2 className="text-lg font-semibold mb-4">User Details</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="font-medium">Email:</div>
-                                <div>{user.email}</div>
+
                                 <div className="font-medium">Firstname:</div>
                                 <div>{user.first_name}</div>
                                 <div className="font-medium">Lastname:</div>
                                 <div>{user.last_name}</div>
+                                <div className="font-medium">Email:</div>
+                                <div>{user.email}</div>
                                 <div className="font-medium">Address:</div>
                                 <div>{user.address}</div>
                                 <div className="font-medium">Telephone:</div>
@@ -133,7 +153,8 @@ const SeekerDashboard = () => {
                         <div className="bg-white rounded-lg shadow-md p-4">
                             <h2 className="text-lg font-semibold mb-4">Manage Account</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">CV's</p>
                                     <p className="text-gray-700">{user.curriculum_vitae.length}</p>
                                     <button
@@ -143,8 +164,26 @@ const SeekerDashboard = () => {
                                         View All
                                     </button>
                                 </div>
+                                <div
+                                    className="relative border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                    <p className="text-lg font-semibold mb-2">Recommended jobs for you</p>
+                                    <div className="relative">
+                                        <button
+                                            onClick={navigateToJobAllert}
+                                            className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white relative"
+                                        >
+                                            View Jobs
+                                            {recommendedJobCount > 0 && (
+                                                <span className="absolute -top-2 -left-2  bg-red-600 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                                                    {recommendedJobCount}
+                                                </span>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
 
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Number of Applications</p>
                                     <p className="text-gray-700">{user.applied_jobs.length}</p>
                                     <button
@@ -154,7 +193,8 @@ const SeekerDashboard = () => {
                                         View Applications
                                     </button>
                                 </div>
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Saved Jobs</p>
                                     <p className="text-gray-700">{user.saved_jobs.length}</p>
                                     <button
