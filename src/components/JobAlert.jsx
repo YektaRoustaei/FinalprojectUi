@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid, faTimes } from '@fortawesome/free-solid-svg-icons';
 import Popup from './Popup'; // Assuming you have a Popup component
+import { useNavigate } from 'react-router-dom';
 
 const JobAlert = () => {
     const [jobs, setJobs] = useState([]);
@@ -11,6 +12,7 @@ const JobAlert = () => {
     const [isSaved, setIsSaved] = useState(false);
     const [message, setMessage] = useState('');
     const token = localStorage.getItem('Seeker_token');
+    const navigate = useNavigate(); // Initialize the useNavigate hook
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -105,13 +107,43 @@ const JobAlert = () => {
         }
     };
 
+    const handleNotInterestedClick = async (jobId) => {
+        try {
+            await axios.post('http://127.0.0.1:8000/api/seeker/jobs/not-interested', {
+                job_id: jobId
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setJobs(jobs.filter(job => job.id !== jobId)); // Remove job from list
+            setMessage('Job marked as not interested.');
+            window.location.reload(); // Refresh the page
+        } catch (error) {
+            setMessage('Failed to mark job as not interested.');
+            console.error('Not Interested error:', error.response ? error.response.data : error.message);
+        }
+    };
+
     return (
         <div className="p-6 bg-white border border-gray-300 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 m-4">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Job Alerts</h1>
             {message && <p className="text-green-500">{message}</p>}
             <div className="space-y-4">
                 {jobs.length > 0 ? jobs.map(job => (
-                    <div key={job.id} className="p-4 border border-gray-200 rounded-lg shadow-sm dark:border-gray-600">
+                    <div key={job.id} className="relative p-4 border border-gray-200 rounded-lg shadow-sm dark:border-gray-600">
+                        {/* Not Interested Button with Tooltip */}
+                        <div className="relative">
+                            <button
+                                className="absolute top-2 right-2 text-red-600 hover:text-gray-900"
+                                onClick={() => handleNotInterestedClick(job.id)}
+                            >
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                            <span className="absolute top-2 right-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+                                Not Interested
+                            </span>
+                        </div>
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{job.title}</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.provider_name}</span></p>
                         <div className="space-y-2 mb-4">
@@ -163,7 +195,17 @@ const JobAlert = () => {
                             </button>
                         </div>
                     </div>
-                )) : <p>No job alerts available.</p>}
+                )) : (
+                    <div className="text-center">
+                        <p className="text-gray-600 dark:text-gray-300 mb-4">No job alerts available.</p>
+                        <button
+                            onClick={() => navigate('/seeker-dashboard')}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                        >
+                            Back to Dashboard
+                        </button>
+                    </div>
+                )}
             </div>
             {isPopupOpen && selectedJob && (
                 <Popup
