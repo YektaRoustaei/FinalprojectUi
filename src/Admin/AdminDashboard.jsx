@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import AdminJobs from './AdminJobs.jsx';
 import AdminProviders from './AdminProviders.jsx';
 import AdminSeekers from './AdminSeekers.jsx';
+import AdminCities from './Cities.jsx'; // Import the new component
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -89,12 +90,20 @@ const AdminDashboard = () => {
                            }`}>
                             Manage Jobs
                         </a>
+                        <a href='#'
+                           onClick={() => setSelectedSection('cities')}
+                           className={`block p-2 rounded transition ${
+                               selectedSection === 'cities' ? 'bg-gray-700' : 'hover:bg-gray-700'
+                           }`}>
+                            Cities Management
+                        </a>
                     </div>
                 </div>
                 <div className="flex-1 p-4">
                     {selectedSection === 'jobs' && <AdminJobs />}
                     {selectedSection === 'seekers' && <AdminSeekers />}
                     {selectedSection === 'providers' && <AdminProviders />}
+                    {selectedSection === 'cities' && <AdminCities />} {/* Render the new component */}
                 </div>
             </div>
         </section>

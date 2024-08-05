@@ -35,6 +35,7 @@ import Applications from "./components/Applications.jsx";
 import EditSeekerInfo from "./components/EditSeekerInfo.jsx";
 import EditCv from "./components/EditCv.jsx";
 import JobAlert from "./components/JobAlert.jsx";
+import Cities from "./Admin/Cities.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -69,6 +70,11 @@ const App = () => {
                 <Route path='/admin' element={
                     <AdminProtectedRoute>
                         <AdminDashboard/>
+                    </AdminProtectedRoute>
+                } />
+                <Route path='/admin/cities' element={
+                    <AdminProtectedRoute>
+                        <Cities/>
                     </AdminProtectedRoute>
                 } />
                 <Route path="/add-job" element={
