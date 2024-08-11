@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select'; // Import Select instead of CreatableSelect
 import CreatableSelect from 'react-select/creatable';
 
 const AddJobPosting = () => {
@@ -11,7 +12,9 @@ const AddJobPosting = () => {
     const [description, setDescription] = useState("");
     const [salary, setSalary] = useState("");
     const [type, setType] = useState("full-time");
-    // const [location, setLocation] = useState("");
+    const [expiryDate, setExpiryDate] = useState("");
+    const [coverLetter, setCoverLetter] = useState(true);
+    const [questionRequired, setQuestionRequired] = useState(false);
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [jobskills, setJobskills] = useState([]);
@@ -19,6 +22,7 @@ const AddJobPosting = () => {
     const [allJobskills, setAllJobskills] = useState([]);
 
     useEffect(() => {
+        // Fetch categories and skills on component mount
         fetch('http://127.0.0.1:8000/api/categories')
             .then(response => response.json())
             .then(data => {
@@ -28,9 +32,7 @@ const AddJobPosting = () => {
                 }));
                 setCategories(formattedCategories);
             })
-            .catch(error => {
-                console.error('There was an error fetching the categories!', error);
-            });
+            .catch(error => console.error('Error fetching categories:', error));
 
         fetch('http://127.0.0.1:8000/api/skills')
             .then(response => response.json())
@@ -41,55 +43,76 @@ const AddJobPosting = () => {
                 }));
                 setAllJobskills(formattedJobskills);
             })
-            .catch(error => {
-                console.error('There was an error fetching the job skills!', error);
-            });
+            .catch(error => console.error('Error fetching job skills:', error));
     }, []);
 
     const handleCategoryChange = (selectedOptions) => {
-        setSelectedCategories(selectedOptions.map(option => option.value));
+        setSelectedCategories(selectedOptions ? selectedOptions.map(option => option.value) : []);
     };
 
     const handleJobskillChange = (newValue) => {
-        setJobskills(newValue.map(option => option.label));
+        setJobskills(newValue ? newValue.map(option => option.label) : []);
+    };
+
+    const validateForm = () => {
+        if (!title || !description || !salary || !type) {
+            toast.error('Please fill out all required fields.');
+            return false;
+        }
+
+        if (expiryDate) {
+            const expiry = new Date(expiryDate);
+            if (expiry < new Date()) {
+                toast.error('Expiry date must be in the future.');
+                return false;
+            }
+        }
+
+        return true;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Convert job skills to an array of skill names
+        if (!validateForm()) {
+            return;
+        }
+
         const newJobPosting = {
             title,
             description,
             salary,
             type,
-            location,
+            expiry_date: expiryDate || null,  // Handle optional expiry date
+            cover_letter: coverLetter,
+            question: questionRequired,
             category_ids: selectedCategories,
-            jobskills // Send as skill names
+            jobskills
         };
 
         try {
             setIsLoading(true);
             const token = localStorage.getItem('Provider_token');
-            const response = await axios({
-                method: 'POST',
-                url: 'http://127.0.0.1:8000/api/provider/jobs/create',
+            const response = await axios.post('http://127.0.0.1:8000/api/provider/jobs/create', newJobPosting, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
-                },
-                data: JSON.stringify(newJobPosting),
+                }
             });
 
             if (response.status === 201) {
                 toast.success("Job posting created successfully");
-                navigate('/provider-dashboard');
+                const newJobId = response.data.job_id; // Adjust according to the actual response structure
+                if (questionRequired) {
+                    navigate(`/add-question?job-id=${newJobId}`);
+                } else {
+                    navigate('/provider-dashboard');
+                }
             } else {
-                console.log('Unexpected response format:', response.data);
-                toast.error('Job posting creation failed. Please try again.');
+                toast.error('An unexpected error occurred.');
             }
         } catch (err) {
-            console.error('Some error occurred during job posting creation: ', err);
+            console.error('Error creating job posting:', err);
             toast.error('Job posting creation failed. Please try again.');
         } finally {
             setIsLoading(false);
@@ -136,7 +159,7 @@ const AddJobPosting = () => {
                             Salary per month
                         </label>
                         <input
-                            type="text"
+                            type="number"
                             id="salary"
                             name="salary"
                             className="border rounded w-full py-2 px-3"
@@ -165,16 +188,58 @@ const AddJobPosting = () => {
                         </select>
                     </div>
                     <div className="mb-4">
+                        <label htmlFor="expiry_date" className="block text-gray-700 font-bold mb-2">
+                            Expiry Date
+                        </label>
+                        <input
+                            type="date"
+                            id="expiry_date"
+                            name="expiry_date"
+                            className="border rounded w-full py-2 px-3"
+                            value={expiryDate}
+                            onChange={(e) => setExpiryDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="cover_letter" className="block text-gray-700 font-bold mb-2">
+                            Cover Letter Required
+                        </label>
+                        <select
+                            id="cover_letter"
+                            name="cover_letter"
+                            className="border rounded w-full py-2 px-3"
+                            value={coverLetter.toString()}
+                            onChange={(e) => setCoverLetter(e.target.value === 'true')}
+                        >
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="question" className="block text-gray-700 font-bold mb-2">
+                            Questionnaire Required
+                        </label>
+                        <select
+                            id="question"
+                            name="question"
+                            className="border rounded w-full py-2 px-3"
+                            value={questionRequired.toString()}
+                            onChange={(e) => setQuestionRequired(e.target.value === 'true')}
+                        >
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
                         <label htmlFor="category" className="block text-gray-700 font-bold mb-2">
                             Category
                         </label>
-                        <CreatableSelect
+                        <Select
                             id="category"
                             name="category"
+                            isMulti
                             options={categories}
                             onChange={handleCategoryChange}
-                            isMulti
-                            className="border rounded w-full py-2 px-3"
                             placeholder="Select categories"
                         />
                     </div>
@@ -184,29 +249,19 @@ const AddJobPosting = () => {
                         </label>
                         <CreatableSelect
                             id="jobskills"
+                            name="jobskills"
+                            isMulti
                             options={allJobskills}
                             onChange={handleJobskillChange}
-                            isMulti
-                            className="border rounded w-full py-2 px-3"
-                            placeholder="Type or select job skills"
+                            placeholder="Select or create job skills"
                         />
                     </div>
-                    {/*<div className="mb-4">*/}
-                    {/*    <label htmlFor="location" className="block text-gray-700 font-bold mb-2">*/}
-                    {/*        Location*/}
-                    {/*    </label>*/}
-                    {/*    <input*/}
-                    {/*        type="text"*/}
-                    {/*        id="location"*/}
-                    {/*        name="location"*/}
-                    {/*        className="border rounded w-full py-2 px-3"*/}
-                    {/*        placeholder="Location"*/}
-                    {/*        value={location}*/}
-                    {/*        onChange={(e) => setLocation(e.target.value)}*/}
-                    {/*    />*/}
-                    {/*</div>*/}
-                    <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600" disabled={isLoading}>
-                        {isLoading ? 'Adding...' : 'Add Job'}
+                    <button
+                        type="submit"
+                        className={`w-full py-2 px-4 rounded ${isLoading ? 'bg-gray-500' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Submitting...' : 'Add Job Posting'}
                     </button>
                 </form>
             </div>

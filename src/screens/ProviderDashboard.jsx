@@ -60,6 +60,9 @@ const ProviderDashboard = () => {
     const navigateToCreatedJobs = () => {
         navigate('/provider-dashboard/jobs');
     };
+    const navigateToCreatejobs = () =>{
+        navigate('/add-job');
+    }
 
     return (
         <div className="bg-gray-100 min-h-screen p-8">
@@ -95,7 +98,8 @@ const ProviderDashboard = () => {
                         <div className="bg-white rounded-lg shadow-md p-4">
                             <h2 className="text-lg font-semibold mb-4">Manage Jobs</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Number of Created Jobs</p>
                                     <p className="text-gray-700">{user.job_count}</p>
                                     <button
@@ -105,9 +109,22 @@ const ProviderDashboard = () => {
                                         Manage All Jobs
                                     </button>
                                 </div>
+                                <div
+                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                    <p className="text-lg font-semibold mb-2">Create new Jobs</p>
+                                    <p className='text-white'>.</p>
+                                    <button
+                                        onClick={navigateToCreatejobs}
+                                        className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white"
+                                    >
+                                        create
+                                    </button>
+                                </div>
 
                             </div>
+
                         </div>
+
                     </div>
                 ) : (
                     <div className="text-gray-600">No user details available.</div>

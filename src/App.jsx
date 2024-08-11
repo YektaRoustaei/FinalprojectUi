@@ -36,6 +36,7 @@ import EditSeekerInfo from "./components/EditSeekerInfo.jsx";
 import EditCv from "./components/EditCv.jsx";
 import JobAlert from "./components/JobAlert.jsx";
 import Cities from "./Admin/Cities.jsx";
+import AddQuestionnair from "./screens/AddQuestionnair.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -80,6 +81,11 @@ const App = () => {
                 <Route path="/add-job" element={
                     <ProviderProtectedRoute>
                         <AddJob />
+                    </ProviderProtectedRoute>
+                } />
+                <Route path="/add-question" element={
+                    <ProviderProtectedRoute>
+                        <AddQuestionnair />
                     </ProviderProtectedRoute>
                 } />
 

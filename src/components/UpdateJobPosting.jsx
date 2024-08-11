@@ -12,6 +12,9 @@ const UpdateJobPosting = () => {
     const [description, setDescription] = useState("");
     const [salary, setSalary] = useState("");
     const [type, setType] = useState("full-time");
+    const [expiryDate, setExpiryDate] = useState("");
+    const [coverLetter, setCoverLetter] = useState(true);
+    const [question, setQuestion] = useState(false);
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [jobskills, setJobskills] = useState([]);
@@ -53,6 +56,9 @@ const UpdateJobPosting = () => {
                 setDescription(job.description);
                 setSalary(job.salary);
                 setType(job.type);
+                setExpiryDate(job.expiry_date || "");
+                setCoverLetter(job.cover_letter || true);
+                setQuestion(job.question || false);
 
                 if (job.categories) {
                     setSelectedCategories(job.categories.map(cat => ({
@@ -82,12 +88,14 @@ const UpdateJobPosting = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Ensure salary is a string
         const updatedJobPosting = {
             title,
             description,
             salary: salary.toString(),  // Convert salary to string
             type,
+            expiry_date: expiryDate,
+            cover_letter: coverLetter,
+            question,
             category_ids: selectedCategories.map(option => option.value),
             jobskills: jobskills.map(option => option.value.toString()) // Convert skill IDs to string
         };
@@ -95,7 +103,7 @@ const UpdateJobPosting = () => {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('Provider_token');
-            const response = await axios.put(`http://127.0.0.1:8000/api/updatejob/${id}`, updatedJobPosting, {
+            const response = await axios.put(`http://127.0.0.1:8000/api/job/${id}`, updatedJobPosting, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
@@ -104,7 +112,7 @@ const UpdateJobPosting = () => {
 
             if (response.status === 200) {
                 toast.success("Job updated successfully");
-                navigate('/seeker-dashboard'); // Navigate to /seeker-dashboard after successful update
+                navigate('/provider-dashboard/jobs'); // Navigate to /provider-dashboard/jobs after successful update
             } else {
                 toast.error('Job update failed. Please try again.');
             }
@@ -160,7 +168,7 @@ const UpdateJobPosting = () => {
                             Salary per month
                         </label>
                         <input
-                            type="text"
+                            type="number"
                             id="salary"
                             name="salary"
                             className="border rounded w-full py-2 px-3"
@@ -186,6 +194,49 @@ const UpdateJobPosting = () => {
                             <option value="part-time">Part-Time</option>
                             <option value="contract">Contract</option>
                             <option value="remote">Remote</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="expiry_date" className="block text-gray-700 font-bold mb-2">
+                            Expiry Date
+                        </label>
+                        <input
+                            type="date"
+                            id="expiry_date"
+                            name="expiry_date"
+                            className="border rounded w-full py-2 px-3"
+                            value={expiryDate}
+                            onChange={(e) => setExpiryDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="cover_letter" className="block text-gray-700 font-bold mb-2">
+                            Cover Letter Required
+                        </label>
+                        <select
+                            id="cover_letter"
+                            name="cover_letter"
+                            className="border rounded w-full py-2 px-3"
+                            value={coverLetter}
+                            onChange={(e) => setCoverLetter(e.target.value === 'true')}
+                        >
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="question" className="block text-gray-700 font-bold mb-2">
+                            Questionnaire Required
+                        </label>
+                        <select
+                            id="question"
+                            name="question"
+                            className="border rounded w-full py-2 px-3"
+                            value={question}
+                            onChange={(e) => setQuestion(e.target.value === 'true')}
+                        >
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
                         </select>
                     </div>
                     <div className="mb-4">
@@ -218,7 +269,6 @@ const UpdateJobPosting = () => {
                         />
                     </div>
                     <div className="flex justify-between">
-
                         <button
                             type="button"
                             onClick={handleCancel}
