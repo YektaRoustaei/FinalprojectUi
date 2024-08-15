@@ -3,13 +3,17 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const Popup = ({ onClose, onSubmit }) => {
+const Popup = ({ onClose, onSubmit, jobId }) => {
     const [cvOption, setCvOption] = useState(''); // 'existing' or 'new'
     const [coverLetter, setCoverLetter] = useState('');
     const [cvList, setCvList] = useState([]); // State to store list of available CVs
     const [cvId, setCvId] = useState(null); // State to store selected CV ID
     const [coverLetterId, setCoverLetterId] = useState(null); // State to store cover letter ID
     const [uploading, setUploading] = useState(false); // State to handle loading indicator
+    const [questions, setQuestions] = useState([]); // State to store questions
+    const [answers, setAnswers] = useState({}); // State to store answers
+    const [answersSubmitted, setAnswersSubmitted] = useState(false); // State to track if answers have been submitted
+    const [showCoverLetter, setShowCoverLetter] = useState(false); // State to control cover letter visibility
     const token = localStorage.getItem('Seeker_token');
     const navigate = useNavigate();
 
@@ -22,7 +26,6 @@ const Popup = ({ onClose, onSubmit }) => {
                         'Authorization': `Bearer ${token}`,
                     },
                 });
-                // Handle case where there's only one CV
                 if (response.data.curriculum_vitae_id) {
                     setCvList([{ id: response.data.curriculum_vitae_id, name: 'Your CV' }]);
                 } else {
@@ -35,6 +38,38 @@ const Popup = ({ onClose, onSubmit }) => {
 
         fetchCVList();
     }, [token]);
+
+    useEffect(() => {
+        // Fetch questions based on the jobId when the component mounts or jobId changes
+        if (jobId) {
+            const fetchQuestions = async () => {
+                try {
+                    const response = await axios.get(`http://127.0.0.1:8000/api/questions/${jobId}`);
+                    setQuestions(response.data.data);
+                } catch (error) {
+                    console.error('Error fetching questions:', error.response ? error.response.data : error.message);
+                }
+            };
+
+            fetchQuestions();
+        }
+    }, [jobId]);
+
+    useEffect(() => {
+        // Fetch job details to determine if cover letter should be shown
+        if (jobId) {
+            const fetchJobDetails = async () => {
+                try {
+                    const response = await axios.get(`http://127.0.0.1:8000/api/job/${jobId}`);
+                    setShowCoverLetter(response.data.cover_letter === 1);
+                } catch (error) {
+                    console.error('Error fetching job details:', error.response ? error.response.data : error.message);
+                }
+            };
+
+            fetchJobDetails();
+        }
+    }, [jobId]);
 
     const handleCVOptionClick = (option) => {
         setCvOption(option);
@@ -70,22 +105,60 @@ const Popup = ({ onClose, onSubmit }) => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleAnswerChange = (questionId, value) => {
+        setAnswers((prevAnswers) => ({
+            ...prevAnswers,
+            [questionId]: value
+        }));
+    };
+
+    const handleSubmitAnswers = async () => {
+        if (Object.keys(answers).length === 0) {
+            alert('Please answer all the questions.');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            // POST answers to the correct route with jobId
+            await axios.post(`http://127.0.0.1:8000/api/answers/${jobId}`, {
+                job_id: jobId,
+                answers: Object.keys(answers).map((questionId) => ({
+                    question_id: questionId,
+                    answer: answers[questionId]
+                }))
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            setAnswersSubmitted(true);
+            alert('Answers submitted successfully.');
+        } catch (error) {
+            console.error('Answers submission error:', error.response ? error.response.data : error.message);
+            alert('An error occurred while submitting the answers: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSubmit = async () => {
         if (cvOption === 'existing' && !cvId) {
             alert('Please select a CV from the list.');
             return;
         }
 
         if (coverLetterId === null && coverLetter) {
-            handleSaveCoverLetter().then(() => {
-                if (coverLetterId) {
-                    onSubmit(cvId, coverLetterId);
-                    onClose();
-                }
-            });
-        } else {
-            onSubmit(cvId, coverLetterId);
-            onClose();
+            await handleSaveCoverLetter();
+        }
+
+        if (coverLetterId !== null || !coverLetter) {
+            if (answersSubmitted) {
+                onSubmit(cvId, coverLetterId, answers);
+                onClose();
+            } else {
+                alert('Please submit your answers before finalizing the application.');
+            }
         }
     };
 
@@ -135,28 +208,57 @@ const Popup = ({ onClose, onSubmit }) => {
                     )}
                 </div>
 
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2 text-gray-700">Cover Letter (Optional)</h3>
-                    <div className="mb-4">
-                        <label className="block mb-2 text-gray-600">Write your cover letter:</label>
-                        <textarea
-                            rows="4"
-                            value={coverLetter}
-                            onChange={handleCoverLetterChange}
-                            placeholder="Write your cover letter here..."
-                            className="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-                        />
+                {showCoverLetter && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-2 text-gray-700">Cover Letter (Optional)</h3>
+                        <div className="mb-4">
+                            <label className="block mb-2 text-gray-600">Write your cover letter:</label>
+                            <textarea
+                                rows="4"
+                                value={coverLetter}
+                                onChange={handleCoverLetterChange}
+                                placeholder="Write your cover letter here..."
+                                className="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                            />
+                        </div>
+                        {coverLetter && (
+                            <button
+                                onClick={handleSaveCoverLetter}
+                                className={`px-4 py-2 rounded-lg ${uploading ? 'bg-gray-400' : 'bg-blue-600'} text-white hover:bg-blue-700`}
+                                disabled={uploading}
+                            >
+                                {uploading ? 'Saving...' : 'Save Cover Letter'}
+                            </button>
+                        )}
                     </div>
-                    {coverLetter && (
+                )}
+
+                {questions.length > 0 && (
+                    <div className="mb-6">
+                        <h3 className="text-lg font-semibold mb-2 text-gray-700">Questions</h3>
+                        {questions.map((question) => (
+                            <div key={question.id} className="mb-4">
+                                <label className="block mb-2 text-gray-600">{question.question}</label>
+                                <input
+                                    type={question.answer_type === 'int' ? 'number' : 'text'}
+                                    min={question.min_value || undefined}
+                                    max={question.max_value || undefined}
+                                    value={answers[question.id] || ''}
+                                    onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                                    placeholder="Your answer here..."
+                                    className="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                                />
+                            </div>
+                        ))}
                         <button
-                            onClick={handleSaveCoverLetter}
+                            onClick={handleSubmitAnswers}
                             className={`px-4 py-2 rounded-lg ${uploading ? 'bg-gray-400' : 'bg-blue-600'} text-white hover:bg-blue-700`}
                             disabled={uploading}
                         >
-                            {uploading ? 'Saving...' : 'Save Cover Letter'}
+                            {uploading ? 'Submitting...' : 'Submit Answers'}
                         </button>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <div className="flex justify-end space-x-4">
                     <button
@@ -166,7 +268,7 @@ const Popup = ({ onClose, onSubmit }) => {
                         Cancel
                     </button>
                     <button
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className={`px-4 py-2 rounded-lg ${uploading ? 'bg-gray-400' : 'bg-blue-600'} text-white hover:bg-blue-700`}
                         onClick={handleSubmit}
                         disabled={uploading}
                     >
@@ -182,6 +284,7 @@ const Popup = ({ onClose, onSubmit }) => {
 Popup.propTypes = {
     onClose: PropTypes.func.isRequired,
     onSubmit: PropTypes.func.isRequired,
+    jobId: PropTypes.number.isRequired, // Ensure jobId is provided
 };
 
 export default Popup;

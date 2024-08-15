@@ -138,7 +138,10 @@ const JobAlert = () => {
                                 className="absolute top-2 right-2 text-red-600 hover:text-gray-900"
                                 onClick={() => handleNotInterestedClick(job.id)}
                             >
+                                <div className='border p-0.5'>
+                                <span>Not Interested </span>
                                 <FontAwesomeIcon icon={faTimes} />
+                                </div>
                             </button>
                             <span className="absolute top-2 right-10 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                                 Not Interested

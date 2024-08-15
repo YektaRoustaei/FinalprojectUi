@@ -54,7 +54,7 @@ const CVList = () => {
     };
 
     const handleCreate = () => {
-        navigate('/create-cv');
+        navigate('/seeker/cv');
     };
 
     const formatDate = (date) => {

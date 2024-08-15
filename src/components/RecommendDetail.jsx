@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Popup from './Popup';
+import Popup from './Popup'; // Make sure Popup is imported
 import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 const RecommendDetail = () => {
@@ -74,7 +74,6 @@ const RecommendDetail = () => {
             console.log('Applying with job_id:', job.id, 'cv_id:', cvId, 'cover_letter_id:', coverLetterId);
             const response = await axios.post('http://127.0.0.1:8000/api/seeker/jobs/apply', {
                 job_id: job.id,
-
                 curriculum_vitae_id: cvId,
                 cover_letter_id: coverLetterId,
             }, {
@@ -169,6 +168,7 @@ const RecommendDetail = () => {
                 <Popup
                     onClose={() => setIsPopupOpen(false)}
                     onSubmit={handleApplySubmit}
+                    jobId={job.id} // Pass the jobId to Popup
                 />
             )}
         </div>

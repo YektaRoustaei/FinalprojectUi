@@ -19,8 +19,7 @@ const CreatedJobs = () => {
                 },
             })
                 .then(response => {
-                    const providerJobs = response.data.jobs;
-                    setJobs(providerJobs);
+                    setJobs(response.data.jobs);
                     setLoading(false);
                 })
                 .catch(error => {
@@ -33,11 +32,12 @@ const CreatedJobs = () => {
         }
     }, [navigate]);
 
-    const handleEdit = (jobId) => {
-        navigate(`/updatejob/${jobId}`);
-    };
     const handleApplication = (jobId) => {
         navigate(`/applications/${jobId}`);
+    };
+
+    const handleEdit = (jobId) => {
+        navigate(`/updatejob/${jobId}`);
     };
 
     const handleDelete = (jobId) => {
@@ -109,7 +109,6 @@ const CreatedJobs = () => {
                     Back to Dashboard
                 </button>
             </div>
-            {/* Add ToastContainer for toast notifications */}
             <ToastContainer />
         </div>
     );
