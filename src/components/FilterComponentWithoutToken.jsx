@@ -12,11 +12,20 @@ const FilterComponentWithoutToken = ({ onFilterChange }) => {
         const fetchFilters = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/search');
-                const jobs = response.data || [];
+                const jobs = response.data.jobs || [];
 
+                // Debugging: Log the API response to the console
+                console.log('API Response:', response.data);
+
+                // Extract unique cities and job types
                 const uniqueCities = [...new Set(jobs.map(job => job.provider_city).filter(Boolean))];
                 const uniqueJobTypes = [...new Set(jobs.map(job => job.type).filter(Boolean))];
 
+                // Debugging: Log the extracted filters
+                console.log('Unique Cities:', uniqueCities);
+                console.log('Unique Job Types:', uniqueJobTypes);
+
+                // Set the state with the unique values
                 setCities(uniqueCities);
                 setJobTypes(uniqueJobTypes);
             } catch (error) {
@@ -57,10 +66,10 @@ const FilterComponentWithoutToken = ({ onFilterChange }) => {
 
     return (
         <div className="bg-white p-4 m-2 rounded-lg shadow-md w-full max-w-xs border-t-2">
-            <h2 className="text-2xl font-bold mb-4 ">Filters</h2>
+            <h2 className="text-2xl font-bold mb-4">Filters</h2>
 
             <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2  border-b-2">City</h3>
+                <h3 className="text-lg font-semibold mb-2 border-b-2">City</h3>
                 {cities.length > 0 ? (
                     cities.map((city, index) => (
                         <div key={index} className="flex items-center mb-2">
@@ -72,14 +81,16 @@ const FilterComponentWithoutToken = ({ onFilterChange }) => {
                                 checked={selectedCities.includes(city)}
                                 className="mr-2 h-4 w-4 border-gray-300 rounded"
                             />
-                            <label htmlFor={`city-${index}`}
-                                   className="text-sm font-medium text-gray-700">{city}</label>
+                            <label htmlFor={`city-${index}`} className="text-sm font-medium text-gray-700">
+                                {city}
+                            </label>
                         </div>
                     ))
                 ) : (
                     <p>No cities available.</p>
                 )}
             </div>
+
             <div>
                 <h3 className="text-lg font-semibold mb-2 border-b-2">Job Type</h3>
                 {jobTypes.length > 0 ? (
@@ -93,8 +104,9 @@ const FilterComponentWithoutToken = ({ onFilterChange }) => {
                                 checked={selectedJobTypes.includes(type)}
                                 className="mr-2 h-4 w-4 border-gray-300 rounded"
                             />
-                            <label htmlFor={`job-type-${index}`}
-                                   className="text-sm font-medium text-gray-700">{type}</label>
+                            <label htmlFor={`job-type-${index}`} className="text-sm font-medium text-gray-700">
+                                {type}
+                            </label>
                         </div>
                     ))
                 ) : (
@@ -106,7 +118,7 @@ const FilterComponentWithoutToken = ({ onFilterChange }) => {
 };
 
 FilterComponentWithoutToken.propTypes = {
-    onFilterChange: PropTypes.func.isRequired
+    onFilterChange: PropTypes.func.isRequired,
 };
 
 export default FilterComponentWithoutToken;

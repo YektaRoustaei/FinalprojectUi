@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom'; // Import useLocation
 import axios from 'axios';
 import HeroSearchBox from './HeroSearchBox';
@@ -41,9 +41,12 @@ const JobsList = () => {
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
 
-                const data = token ? response.data.jobs : response.data;
-                setJobs(data);
-                if (token) setRecommendedJobs(data);
+                const data = response.data.jobs; // Adjust according to your API response structure
+                if (token) {
+                    setRecommendedJobs(data);
+                } else {
+                    setJobs(data);
+                }
             } catch (error) {
                 console.error('Error fetching jobs:', error);
             }
