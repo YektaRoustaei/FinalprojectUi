@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Popup from './Popup'; // Make sure Popup is imported
+import Popup from './Popup'; // Ensure Popup is imported
 import { faBriefcase, faSackDollar, faLocationDot, faBuilding, faBookmark, faBookmark as faBookmarkSolid, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 const RecommendDetail = () => {
@@ -10,20 +10,32 @@ const RecommendDetail = () => {
     const navigate = useNavigate();
     const { job } = location.state || {};
     const [isSaved, setIsSaved] = useState(false);
+    const [isApplied, setIsApplied] = useState(false);
     const [message, setMessage] = useState('');
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [curriculumVitaeId, setCurriculumVitaeId] = useState(null);
-    const [coverLetterId, setCoverLetterId] = useState(null);
+    const [curriculumVitaeId, setCurriculumVitaeId] = useState('');
+    const [coverLetterId, setCoverLetterId] = useState('');
     const token = localStorage.getItem('Seeker_token');
 
     useEffect(() => {
         if (job) {
-            // Optionally check if the job is already saved when the component mounts
-            // checkIfJobSaved();
+            fetchJobStatus();
         }
     }, [job]);
 
-    if (!job) return <div>Loading...</div>;
+    const fetchJobStatus = async () => {
+        try {
+            const response = await axios.get(`http://127.0.0.1:8000/api/job-status/${job.id}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            setIsApplied(response.data.applied_before);
+            setIsSaved(response.data.saved_before);
+        } catch (error) {
+            console.error('Error fetching job status:', error.response ? error.response.data : error.message);
+        }
+    };
 
     const handleSaveClick = () => {
         if (isSaved) {
@@ -68,10 +80,7 @@ const RecommendDetail = () => {
     };
 
     const applyForJob = async (cvId, coverLetterId) => {
-        console.log('Applying with job_id:', job.id);
-
         try {
-            console.log('Applying with job_id:', job.id, 'cv_id:', cvId, 'cover_letter_id:', coverLetterId);
             const response = await axios.post('http://127.0.0.1:8000/api/seeker/jobs/apply', {
                 job_id: job.id,
                 curriculum_vitae_id: cvId,
@@ -82,6 +91,7 @@ const RecommendDetail = () => {
                 }
             });
             setMessage(response.data.message);
+            setIsApplied(true);
         } catch (error) {
             const errorMessage = error.response && error.response.data && error.response.data.message
                 ? error.response.data.message
@@ -92,14 +102,18 @@ const RecommendDetail = () => {
     };
 
     const handleApplyClick = () => {
-        setIsPopupOpen(true); // Open the pop-up
+        if (isApplied) {
+            navigate('/seeker-dashboard/appliedjobs');
+        } else {
+            setIsPopupOpen(true);
+        }
     };
 
     const handleApplySubmit = (cvId, coverLetterId) => {
         setCurriculumVitaeId(cvId);
         setCoverLetterId(coverLetterId);
-        applyForJob(cvId, coverLetterId); // Submit the job application
-        setIsPopupOpen(false); // Close the pop-up after submission
+        applyForJob(cvId, coverLetterId);
+        setIsPopupOpen(false);
     };
 
     return (
@@ -140,22 +154,27 @@ const RecommendDetail = () => {
                 )}
             </div>
             <p className="text-gray-700 dark:text-gray-400 mb-4">{job.description}</p>
-            <div className="mt-4 flex flex-wrap">
-                {job.job_skills && job.job_skills.length > 0 && job.job_skills.map((jobSkill, index) => {
-                    const isMatching = job.matching_skills && job.matching_skills[jobSkill];
+            <div className="mt-4 flex flex-wrap mb-4">
+                {Array.isArray(job.job_skills) && job.job_skills.length > 0 && job.job_skills.map((skill, index) => {
+                    const isMatching = job.matching_skills && Object.values(job.matching_skills).includes(skill);
                     return (
                         <span
                             key={index}
                             className={`inline-block text-sm px-2 py-1 rounded-full mr-2 mb-2 ${isMatching ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-800'}`}
                         >
-                            {jobSkill}
+                            {skill}
                         </span>
                     );
                 })}
             </div>
             {message && <p className="text-green-500">{message}</p>}
             <div className="flex justify-between items-center">
-                <button className="px-4 py-2 bg-blue-900 text-white rounded-lg" onClick={handleApplyClick}>Apply</button>
+                <button
+                    className={`px-4 py-2 bg-blue-900 text-white rounded-lg ${isApplied ? 'bg-blue-600' : 'bg-blue-900'}`}
+                    onClick={handleApplyClick}
+                >
+                    {isApplied ? 'Applied Before' : 'Apply'}
+                </button>
                 <button
                     className={`px-4 py-2 rounded-lg flex items-center transition duration-300 ${isSaved ? 'bg-red-600' : 'bg-gray-600'} text-white`}
                     onClick={handleSaveClick}

@@ -88,7 +88,7 @@ const AppliedJobs = () => {
                                             <p className="text-lg font-semibold mb-2">{jobDetail.title}</p>
                                             <p className="text-gray-700">{jobDetail.description}</p>
                                             <p className="text-gray-700">Company: {jobDetail.provider.company_name}</p>
-                                            <p className="text-gray-700">Location: {jobDetail.provider.address}</p>
+                                            <p className="text-gray-700">Location: {jobDetail.provider.city.city_name}</p>
                                         </>
                                     ) : (
                                         <p>Loading job details...</p>

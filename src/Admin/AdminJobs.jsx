@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 const AdminJobs = () => {
     const [jobs, setJobs] = useState([]);
+    const [latestJobs, setLatestJobs] = useState([]);
+    const [citiesData, setCitiesData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedJob, setExpandedJob] = useState(null);
+    const [allJobs, setAllJobs] = useState([]);
 
     // Fetch jobs based on the search term
     const fetchJobs = (search = '') => {
@@ -15,19 +18,40 @@ const AdminJobs = () => {
             .then(response => response.json())
             .then(data => {
                 setJobs(data);
+                if (search === '') {
+                    setLatestJobs(data.slice(0, 5)); // Set latest jobs
+                }
+                setAllJobs(data); // Keep all jobs for search
             })
             .catch(error => {
                 console.error('There was an error fetching the jobs!', error);
             });
     };
 
+    // Fetch city data
+    const fetchCitiesData = () => {
+        fetch('http://127.0.0.1:8000/api/city/static')
+            .then(response => response.json())
+            .then(data => {
+                const citiesArray = Object.values(data).map(city => ({
+                    name: city.city_name,
+                    jobPostingsCount: city.job_postings_count
+                }));
+                setCitiesData(citiesArray);
+            })
+            .catch(error => {
+                console.error('There was an error fetching the cities data!', error);
+            });
+    };
+
     useEffect(() => {
         fetchJobs(); // Fetch all jobs initially
+        fetchCitiesData(); // Fetch city data initially
     }, []);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        fetchJobs(searchTerm);
+        fetchJobs(searchTerm); // Fetch jobs based on search term
     };
 
     const handleClearSearch = () => {
@@ -48,6 +72,22 @@ const AdminJobs = () => {
             console.log(`Delete job with ID: ${jobId}`);
             setJobs(prevJobs => prevJobs.filter(job => job.id !== jobId));
         }
+    };
+
+    const getCitiesChartData = () => {
+        const labels = citiesData.map(city => city.name);
+        const data = citiesData.map(city => city.jobPostingsCount);
+
+        return {
+            labels,
+            datasets: [{
+                label: 'Job Postings',
+                data,
+                backgroundColor: '#3b82f6',
+                borderColor: '#2563eb',
+                borderWidth: 1,
+            }]
+        };
     };
 
     return (
@@ -82,7 +122,50 @@ const AdminJobs = () => {
                 </div>
             </form>
 
-            {jobs.map(job => (
+            {/* Bar Chart for Job Postings by City */}
+            <div className="relative bg-white border rounded-lg shadow-lg mb-6 p-6">
+                <h3 className="text-lg font-semibold mb-2">Job Postings by City</h3>
+                {citiesData.length === 0 ? (
+                    <p className="text-gray-600">No data available</p>
+                ) : (
+                    <Bar
+                        data={getCitiesChartData()}
+                        options={{
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (tooltipItem) {
+                                            return `${tooltipItem.label}: ${tooltipItem.raw}`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'City'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Job Postings Count'
+                                    },
+                                    beginAtZero: true
+                                }
+                            }
+                        }}
+                    />
+                )}
+            </div>
+
+            {/* Displaying Latest Jobs or Search Results */}
+            {(searchTerm === '' ? latestJobs : jobs).map(job => (
                 <div key={job.id} className="relative bg-white border border-gray-200 rounded-lg shadow-lg mb-6 p-6">
                     <div className='grid grid-cols-2 gap-6 mb-10'>
                         <div className="space-y-2">

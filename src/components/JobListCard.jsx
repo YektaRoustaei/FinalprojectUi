@@ -46,13 +46,13 @@ const JobListCard = ({ job, companyName, cityName, isMatching }) => {
                 </div>
             </div>
             <div className="mt-4 flex flex-wrap">
-                {job.skills && job.skills.length > 0 ? (
-                    job.skills.map((skill, index) => (
+                {job.job_skills && job.job_skills.length > 0 ? (
+                    job.job_skills.map((job_skills, index) => (
                         <span
                             key={index}
                             className={`inline-block text-sm px-2 py-1 rounded-full mr-2 mb-2 ${isMatching ? 'bg-gray-200 text-gray-800' : 'bg-gray-200 text-gray-800'}`}
                         >
-                            {skill}
+                            {job_skills}
                         </span>
                     ))
                 ) : (

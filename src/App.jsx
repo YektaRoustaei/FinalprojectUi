@@ -37,6 +37,8 @@ import EditCv from "./components/EditCv.jsx";
 import JobAlert from "./components/JobAlert.jsx";
 import Cities from "./Admin/Cities.jsx";
 import AddQuestionnair from "./screens/AddQuestionnair.jsx";
+import EditProviderInfo from "./components/EditProviderInfo.jsx";
+import SavedCV from "./components/SavedCV.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -61,6 +63,16 @@ const App = () => {
                 <Route path='/provider-dashboard/jobs' element={
                     <ProviderProtectedRoute>
                         <CreatedJobs/>
+                    </ProviderProtectedRoute>
+                } />
+                <Route path='/savedcv/:providerId' element={
+                    <ProviderProtectedRoute>
+                        <SavedCV/>
+                    </ProviderProtectedRoute>
+                } />
+                <Route path='/provider/edit/:providerId' element={
+                    <ProviderProtectedRoute>
+                        <EditProviderInfo/>
                     </ProviderProtectedRoute>
                 } />
                 <Route path='/applications/:id' element={
@@ -105,6 +117,7 @@ const App = () => {
                         <AppliedJobs/>
                     </SeekerProtectedRoute>
                 } />
+
                 <Route path="/seeker-dashboard/joballert" element={
                     <SeekerProtectedRoute>
                         <JobAlert/>

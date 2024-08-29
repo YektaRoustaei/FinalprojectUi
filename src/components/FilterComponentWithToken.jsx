@@ -40,6 +40,7 @@ const FilterComponentWithToken = ({ onFilterChange }) => {
                 ? [...prevState, city]
                 : prevState.filter(c => c !== city);
 
+            console.log('Updated cities:', updatedCities); // Debug here
             onFilterChange(updatedCities, selectedJobTypes);
             return updatedCities;
         });
@@ -54,10 +55,12 @@ const FilterComponentWithToken = ({ onFilterChange }) => {
                 ? [...prevState, jobType]
                 : prevState.filter(jt => jt !== jobType);
 
+            console.log('Updated job types:', updatedJobTypes); // Debug here
             onFilterChange(selectedCities, updatedJobTypes);
             return updatedJobTypes;
         });
     };
+
 
     return (
         <div className="bg-white p-4 rounded-lg shadow-md w-full max-w-xs mt-10 border-t-2">

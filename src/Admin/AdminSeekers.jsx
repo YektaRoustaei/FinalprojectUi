@@ -1,28 +1,48 @@
 import { useEffect, useState } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale } from 'chart.js';
 
-ChartJS.register(Title, Tooltip, Legend, ArcElement);
+ChartJS.register(Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale);
 
 const AdminSeekers = () => {
     const [seekers, setSeekers] = useState([]);
+    const [citiesData, setCitiesData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedSeeker, setExpandedSeeker] = useState(null);
+    const [initialLoad, setInitialLoad] = useState(true); // New state to track initial load
 
     // Fetch seekers based on the search term
     const fetchSeekers = (search = '') => {
         fetch(`http://127.0.0.1:8000/api/seeker/all?search=${encodeURIComponent(search)}`)
             .then(response => response.json())
             .then(data => {
-                setSeekers(data); // Adjusted to directly set data
+                setSeekers(data);
+                setInitialLoad(false);  // Set initial load to false after the first fetch
             })
             .catch(error => {
                 console.error('There was an error fetching the seekers!', error);
             });
     };
 
+    // Fetch city data
+    const fetchCitiesData = () => {
+        fetch('http://127.0.0.1:8000/api/city/static')
+            .then(response => response.json())
+            .then(data => {
+                const citiesArray = Object.values(data).map(city => ({
+                    name: city.city_name,
+                    seekersCount: city.seekers_count
+                }));
+                setCitiesData(citiesArray);
+            })
+            .catch(error => {
+                console.error('There was an error fetching the cities data!', error);
+            });
+    };
+
     useEffect(() => {
         fetchSeekers(); // Fetch all seekers initially
+        fetchCitiesData(); // Fetch city data initially
     }, []);
 
     const handleSearchSubmit = (e) => {
@@ -50,24 +70,23 @@ const AdminSeekers = () => {
         }
     };
 
-    const getJobStatusData = (appliedJobs) => {
-        const statusCounts = {
-            accepted: 0,
-            rejected: 0,
-            hold: 0,
-        };
+    // Aggregate job statuses across all seekers
+    const aggregateJobStatusData = () => {
+        let accepted = 0, rejected = 0, hold = 0;
 
-        appliedJobs.forEach(job => {
-            if (job.status in statusCounts) {
-                statusCounts[job.status]++;
-            }
+        seekers.forEach(seeker => {
+            seeker.applied_jobs.forEach(job => {
+                if (job.status === 'accepted') accepted++;
+                else if (job.status === 'rejected') rejected++;
+                else if (job.status === 'hold') hold++;
+            });
         });
 
-        return [statusCounts.accepted, statusCounts.rejected, statusCounts.hold];
+        return [accepted, rejected, hold];
     };
 
-    const getChartData = (appliedJobs) => {
-        const [accepted, rejected, hold] = getJobStatusData(appliedJobs);
+    const getAggregatedChartData = () => {
+        const [accepted, rejected, hold] = aggregateJobStatusData();
 
         return {
             labels: ['Accepted', 'Rejected', 'Hold'],
@@ -79,6 +98,27 @@ const AdminSeekers = () => {
             }]
         };
     };
+
+    const getCitiesChartData = () => {
+        const labels = citiesData.map(city => city.name);
+        const data = citiesData.map(city => city.seekersCount);
+
+        return {
+            labels,
+            datasets: [{
+                label: 'Seekers Count',
+                data,
+                backgroundColor: '#3b82f6',
+                borderColor: '#fff',
+                borderWidth: 1,
+            }]
+        };
+    };
+
+    // Calculate total seekers from citiesData
+    const totalSeekers = citiesData.reduce((total, city) => total + city.seekersCount, 0);
+
+    const displayedSeekers = initialLoad ? seekers.slice(0, 5) : seekers;
 
     return (
         <div className="bg-gray-50 min-h-screen p-8">
@@ -93,7 +133,7 @@ const AdminSeekers = () => {
                             onClick={handleClearSearch}
                             className="px-4 py-2 text-gray-600 border-none cursor-pointer hover:text-gray-900 transition-colors duration-300"
                         >
-                            &times; {/* Clear icon (×) */}
+                            &times;
                         </button>
                     )}
                     <input
@@ -112,7 +152,88 @@ const AdminSeekers = () => {
                 </div>
             </form>
 
-            {seekers.map(seeker => (
+            <div className="relative bg-white border rounded-lg shadow-lg mb-6 p-6">
+                <div className="flex justify-center">
+                    <div className="flex flex-col items-center">
+                        <h3 className="text-lg font-semibold mb-2">Overall Job Application Status</h3>
+                        {seekers.length === 0 ? (
+                            <p className="text-gray-600">No data available</p>
+                        ) : (
+                            <>
+                                <Pie
+                                    data={getAggregatedChartData()}
+                                    options={{
+                                        responsive: true,
+                                        plugins: {
+                                            legend: {
+                                                position: 'top',
+                                            },
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: function (tooltipItem) {
+                                                        const dataset = tooltipItem.dataset;
+                                                        const total = dataset.data.reduce((acc, value) => acc + value, 0);
+                                                        const value = dataset.data[tooltipItem.dataIndex];
+                                                        const percentage = ((value / total) * 100).toFixed(2);
+                                                        return `${tooltipItem.label}: ${value} (${percentage}%)`;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                                <p className="mt-4 text-gray-600">Total Applications: {seekers.reduce((acc, seeker) => acc + seeker.applied_jobs.length, 0)}</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="relative bg-white border rounded-lg shadow-lg mb-6 p-6">
+                <div className="flex justify-center">
+                    <div className="flex flex-col items-center w-full" style={{ maxWidth: '800px' }}>
+                        <h3 className="text-lg font-semibold mb-2">Job Seekers by City</h3>
+                        {citiesData.length === 0 ? (
+                            <p className="text-gray-600">No data available</p>
+                        ) : (
+                            <>
+                                <div style={{ position: 'relative', height: '400px', width: '100%' }}>
+                                    <Bar
+                                        data={getCitiesChartData()}
+                                        options={{
+                                            responsive: true,
+                                            plugins: {
+                                                legend: {
+                                                    position: 'top',
+                                                },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: function (tooltipItem) {
+                                                            const value = tooltipItem.raw;
+                                                            return `${tooltipItem.label}: ${value}`;
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            scales: {
+                                                x: {
+                                                    beginAtZero: true,
+                                                },
+                                                y: {
+                                                    beginAtZero: true,
+                                                }
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <p className="mt-4 text-gray-600">Total Seekers: {totalSeekers}</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {displayedSeekers.map(seeker => (
                 <div key={seeker.email} className="relative bg-white border border-gray-200 rounded-lg shadow-lg mb-6 p-6">
                     <div className='grid grid-cols-2 gap-6 mb-10'>
                         <div className="space-y-2">
@@ -120,42 +241,6 @@ const AdminSeekers = () => {
                             <p className="text-gray-600"><strong>Email:</strong> {seeker.email}</p>
                             <p className="text-gray-600"><strong>Address:</strong> {seeker.address}</p>
                             <p className="text-gray-600"><strong>Phone:</strong> {seeker.phonenumber}</p>
-                        </div>
-
-                        {/* Pie chart */}
-                        <div className="flex flex-col mb-10">
-                            <div className="h-36">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-2">Job Application Status</h3>
-                                {seeker.applied_jobs.length === 0 ? (
-                                    <p className="text-gray-600">No applied jobs</p>
-                                ) : (
-                                    <>
-                                        <Pie
-                                            data={getChartData(seeker.applied_jobs)}
-                                            options={{
-                                                responsive: true,
-                                                plugins: {
-                                                    legend: {
-                                                        position: 'top',
-                                                    },
-                                                    tooltip: {
-                                                        callbacks: {
-                                                            label: function (tooltipItem) {
-                                                                const dataset = tooltipItem.dataset;
-                                                                const total = dataset.data.reduce((acc, value) => acc + value, 0);
-                                                                const value = dataset.data[tooltipItem.dataIndex];
-                                                                const percentage = ((value / total) * 100).toFixed(2);
-                                                                return `${dataset.label}: ${value} (${percentage}%)`;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }}
-                                        />
-                                        <p className="mt-2 text-gray-600">Total Applied Jobs: {seeker.applied_jobs.length}</p>
-                                    </>
-                                )}
-                            </div>
                         </div>
                     </div>
 

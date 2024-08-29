@@ -44,7 +44,7 @@ const ProviderDashboard = () => {
                     localStorage.removeItem('Provider_token');
                     setUser(null);
                     toast.success('Logout successful.');
-                    window.location.reload(); // Refresh the page after logout
+                    navigate('/'); // Redirect to home page after logout
                 })
                 .catch(error => {
                     console.error('Error logging out:', error);
@@ -53,15 +53,45 @@ const ProviderDashboard = () => {
     };
 
     const handleEditProfile = () => {
-        // Implement edit profile functionality here
-        console.log('Editing profile...');
+        if (user) {
+            navigate(`/provider/edit/${user.id}`);
+        }
+    };
+
+    const handleDeleteProfile = () => {
+        const token = localStorage.getItem('Provider_token');
+        const providerId = user?.id; // Ensure user object has ID
+
+        if (token && providerId) {
+            axios.delete(`http://127.0.0.1:8000/api/provider/delete/${providerId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+                .then(() => {
+                    localStorage.removeItem('Provider_token');
+                    setUser(null);
+                    toast.success('Profile deleted successfully.');
+                    navigate('/'); // Redirect to the home page after deletion
+                })
+                .catch(error => {
+                    console.error('Error deleting profile:', error);
+                    toast.error('Failed to delete profile.');
+                });
+        }
     };
 
     const navigateToCreatedJobs = () => {
         navigate('/provider-dashboard/jobs');
     };
-    const navigateToCreatejobs = () =>{
+
+    const navigateToCreateJobs = () => {
         navigate('/add-job');
+    };
+    const navigatetoSavedCV =()=>{
+        if (user) {
+            navigate(`/savedcv/${user.id}`);
+        }
     }
 
     return (
@@ -85,7 +115,15 @@ const ProviderDashboard = () => {
                                 <div>{user.address}</div>
                                 <div className="font-medium">Telephone:</div>
                                 <div>{user.telephone}</div>
-                                <div className="col-span-2 flex justify-start">
+                                <div className="flex mt-10">
+                                    <button
+                                        onClick={handleDeleteProfile}
+                                        className="border-red-600 border-2 px-4 py-2 rounded-lg hover:bg-red-800 hover:text-white transition duration-200"
+                                    >
+                                        Delete Profile
+                                    </button>
+                                </div>
+                                <div className="mt-10 justify-start flex ">
                                     <button
                                         onClick={handleEditProfile}
                                         className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition duration-200"
@@ -98,8 +136,7 @@ const ProviderDashboard = () => {
                         <div className="bg-white rounded-lg shadow-md p-4">
                             <h2 className="text-lg font-semibold mb-4">Manage Jobs</h2>
                             <div className="grid grid-cols-2 gap-4">
-                                <div
-                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Number of Created Jobs</p>
                                     <p className="text-gray-700">{user.job_count}</p>
                                     <button
@@ -109,22 +146,26 @@ const ProviderDashboard = () => {
                                         Manage All Jobs
                                     </button>
                                 </div>
-                                <div
-                                    className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
                                     <p className="text-lg font-semibold mb-2">Create new Jobs</p>
-                                    <p className='text-white'>.</p>
                                     <button
-                                        onClick={navigateToCreatejobs}
+                                        onClick={navigateToCreateJobs}
                                         className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white"
                                     >
-                                        create
+                                        Create
                                     </button>
                                 </div>
-
+                                <div className="border border-gray-200 rounded-lg p-4 text-center hover:border-gray-400 hover:shadow-xl">
+                                    <p className="text-lg font-semibold mb-2">Saved CV's</p>
+                                    <button
+                                        onClick={navigatetoSavedCV}
+                                        className="mt-4 px-4 py-2 border border-blue-600 font-semibold rounded hover:bg-blue-700 transition duration-200 hover:text-white"
+                                    >
+                                        All CV's
+                                    </button>
+                                </div>
                             </div>
-
                         </div>
-
                     </div>
                 ) : (
                     <div className="text-gray-600">No user details available.</div>

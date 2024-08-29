@@ -250,9 +250,11 @@ const Applications = () => {
                                                                 <li key={exp.id} className="mb-3">
                                                                     <p><strong>Company:</strong> {exp.company_name}</p>
                                                                     <p><strong>Position:</strong> {exp.position}</p>
-                                                                    <p><strong>Description:</strong> {exp.description}</p>
+                                                                    <p><strong>Description:</strong> {exp.description}
+                                                                    </p>
                                                                     <p><strong>Start Date:</strong> {exp.start_date}</p>
-                                                                    <p><strong>End Date:</strong> {exp.end_date || 'Present'}</p>
+                                                                    <p><strong>End
+                                                                        Date:</strong> {exp.end_date || 'Present'}</p>
                                                                 </li>
                                                             ))}
                                                         </ul>
@@ -262,12 +264,35 @@ const Applications = () => {
                                                         <ul className="list-disc pl-5">
                                                             {cvDetails?.educations?.map((edu) => (
                                                                 <li key={edu.id} className="mb-3">
-                                                                    <p><strong>Institution:</strong> {edu.institution}</p>
+                                                                    <p><strong>Institution:</strong> {edu.institution}
+                                                                    </p>
                                                                     <p><strong>Degree:</strong> {edu.degree}</p>
-                                                                    <p><strong>Field of Study:</strong> {edu.field_of_study}</p>
+                                                                    <p><strong>Field of
+                                                                        Study:</strong> {edu.field_of_study}</p>
                                                                     <p><strong>Start Date:</strong> {edu.start_date}</p>
                                                                     <p><strong>End Date:</strong> {edu.end_date}</p>
                                                                 </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                    <div className="mb-4">
+                                                        <h4 className="text-lg font-semibold">skills</h4>
+                                                        <h4 className="text-lg text-red-600">3 matching skills</h4>
+                                                        <ul className="list-disc pl-5">
+                                                            {cvDetails?.educations?.map((edu) => (
+                                                                <li key={edu.id} className="mb-3">
+
+                                                                    <p><strong>
+                                                                    </strong> {edu.field_of_study}</p>
+                                                                    <p><strong>
+                                                                    </strong> Java Script </p>
+                                                                    <p><strong>
+                                                                    </strong> React </p>
+                                                                    <p><strong>
+                                                                    </strong> Java </p>
+
+                                                                </li>
+
                                                             ))}
                                                         </ul>
                                                     </div>
@@ -283,7 +308,8 @@ const Applications = () => {
 
                                             {isAnswersVisible && (
                                                 <div className="mt-6">
-                                                    <h3 className="text-xl font-semibold mb-4">Questions and Answers</h3>
+                                                    <h3 className="text-xl font-semibold mb-4">Questions and
+                                                        Answers</h3>
                                                     {questions.length > 0 ? (
                                                         questions.map((question) => {
                                                             const answer = answers.find((ans) => ans.question_id === question.id);

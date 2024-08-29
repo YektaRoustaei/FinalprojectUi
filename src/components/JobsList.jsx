@@ -1,5 +1,5 @@
-import  { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom'; // Import useLocation
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import HeroSearchBox from './HeroSearchBox';
 import RecommendedCards from './RecommendedCards.jsx';
@@ -11,6 +11,7 @@ import FilterComponentWithoutToken from "./FilterComponentWithoutToken.jsx";
 const JobsList = () => {
     const [jobs, setJobs] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [recommendedJobs, setRecommendedJobs] = useState([]);
     const [selectedCity, setSelectedCity] = useState([]);
     const [selectedJobType, setSelectedJobType] = useState([]);
@@ -19,7 +20,6 @@ const JobsList = () => {
     const location = useLocation();
     const token = localStorage.getItem('Seeker_token');
 
-    // Function to parse query parameters
     const queryParams = new URLSearchParams(location.search);
     const searchTerm = queryParams.get('searchTerm') || '';
     const searchCity = queryParams.get('location') || '';
@@ -33,7 +33,9 @@ const JobsList = () => {
             const params = new URLSearchParams({
                 search_term: searchTerm,
                 city: searchCity || selectedCity.join(','),
-                job_type: selectedJobType.join(',')
+                job_type: selectedJobType.join(','),
+                page: currentPage,
+                per_page: jobsPerPage
             });
 
             try {
@@ -41,12 +43,18 @@ const JobsList = () => {
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
 
-                const data = response.data.jobs; // Adjust according to your API response structure
+                // Convert jobs object to array
+                const jobsArray = Object.values(response.data.jobs);
+
+                // Set recommended jobs if token is available
                 if (token) {
-                    setRecommendedJobs(data);
+                    setRecommendedJobs(jobsArray);
                 } else {
-                    setJobs(data);
+                    setJobs(jobsArray);
                 }
+
+                // Set pagination data
+                setTotalPages(response.data.total_pages || 1); // Ensure totalPages is set to 1 if not available
             } catch (error) {
                 console.error('Error fetching jobs:', error);
             }
@@ -58,10 +66,8 @@ const JobsList = () => {
     const handleFilterChange = (cities, jobTypes) => {
         setSelectedCity(cities);
         setSelectedJobType(jobTypes);
+        setCurrentPage(1); // Reset to first page when filters change
     };
-
-    const startIndex = (currentPage - 1) * jobsPerPage;
-    const paginatedJobs = jobs.slice(startIndex, startIndex + jobsPerPage);
 
     return (
         <div className="w-full">
@@ -79,26 +85,30 @@ const JobsList = () => {
                     <div className="col-span-1 mt-4">
                         <div className="flex flex-col m-4">
                             {token ? (
-                                <FilterComponentWithToken onFilterChange={handleFilterChange}/>
+                                <FilterComponentWithToken onFilterChange={handleFilterChange} />
                             ) : (
-                                <FilterComponentWithoutToken onFilterChange={handleFilterChange}/>
+                                <FilterComponentWithoutToken onFilterChange={handleFilterChange} />
                             )}
                         </div>
                     </div>
                     <div className="col-span-2">
                         {token && recommendedJobs.length > 0 ? (
-                            <RecommendedCards jobs={recommendedJobs}/>
+                            <RecommendedCards jobs={recommendedJobs} />
                         ) : (
                             <div>
-                                <h2 className="text-2xl font-bold mb-4">All jobs</h2>
-                                {paginatedJobs.map(job => (
-                                    <JobListCard key={job.id} job={job}/>
-                                ))}
+                                <h2 className="text-2xl font-bold mb-4">All Jobs</h2>
+                                {jobs.length > 0 ? (
+                                    jobs.map(job => (
+                                        <JobListCard key={job.id} job={job} />
+                                    ))
+                                ) : (
+                                    <p>No jobs found.</p>
+                                )}
                             </div>
                         )}
                         <Pagination
                             currentPage={currentPage}
-                            totalPages={Math.ceil(jobs.length / jobsPerPage)}
+                            totalPages={totalPages}
                             onPageChange={setCurrentPage}
                         />
                     </div>
