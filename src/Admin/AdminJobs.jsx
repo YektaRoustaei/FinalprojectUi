@@ -12,7 +12,6 @@ const AdminJobs = () => {
     const [expandedJob, setExpandedJob] = useState(null);
     const [allJobs, setAllJobs] = useState([]);
 
-    // Fetch jobs based on the search term
     const fetchJobs = (search = '') => {
         fetch(`http://127.0.0.1:8000/api/joblist?search_term=${encodeURIComponent(search)}`)
             .then(response => response.json())

@@ -14,18 +14,18 @@ const FilterComponentWithoutToken = ({ onFilterChange }) => {
                 const response = await axios.get('http://127.0.0.1:8000/api/search');
                 const jobs = response.data.jobs || [];
 
-                // Debugging: Log the API response to the console
+
                 console.log('API Response:', response.data);
 
-                // Extract unique cities and job types
+
                 const uniqueCities = [...new Set(jobs.map(job => job.provider_city).filter(Boolean))];
                 const uniqueJobTypes = [...new Set(jobs.map(job => job.type).filter(Boolean))];
 
-                // Debugging: Log the extracted filters
+
                 console.log('Unique Cities:', uniqueCities);
                 console.log('Unique Job Types:', uniqueJobTypes);
 
-                // Set the state with the unique values
+
                 setCities(uniqueCities);
                 setJobTypes(uniqueJobTypes);
             } catch (error) {

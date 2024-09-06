@@ -10,7 +10,6 @@ const AddQuestionnaire = ({ onQuestionnaireAdded }) => {
     const [questions, setQuestions] = useState([{ question: "", answerType: "string", minValue: "", maxValue: "" }]);
     const [jobId, setJobId] = useState(null);
 
-    // Extract job-id from URL query parameters
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const id = queryParams.get('job-id');
@@ -64,9 +63,7 @@ const AddQuestionnaire = ({ onQuestionnaireAdded }) => {
                 if (typeof onQuestionnaireAdded === 'function') {
                     onQuestionnaireAdded();
                 }
-                // Clear form fields
                 setQuestions([{ question: "", answerType: "string", minValue: "", maxValue: "" }]);
-                // Navigate to provider-dashboard
                 navigate('/provider-dashboard');
             } else {
                 toast.error('Failed to add questionnaire.');

@@ -43,17 +43,14 @@ const JobsList = () => {
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
 
-                // Convert jobs object to array
                 const jobsArray = Object.values(response.data.jobs);
 
-                // Set recommended jobs if token is available
                 if (token) {
                     setRecommendedJobs(jobsArray);
                 } else {
                     setJobs(jobsArray);
                 }
 
-                // Set pagination data
                 setTotalPages(response.data.total_pages || 1); // Ensure totalPages is set to 1 if not available
             } catch (error) {
                 console.error('Error fetching jobs:', error);

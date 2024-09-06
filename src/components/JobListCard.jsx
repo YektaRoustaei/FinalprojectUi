@@ -10,7 +10,6 @@ const JobListCard = ({ job, companyName, cityName, isMatching }) => {
         navigate(`/jobslist/job/${job.id}`, { state: { job, companyName, cityName } });
     };
 
-    // Ensure salary is a number before formatting
     const formattedSalary = typeof job.salary === 'number' ? job.salary.toLocaleString() : 'N/A';
 
     return (
@@ -26,23 +25,26 @@ const JobListCard = ({ job, companyName, cityName, isMatching }) => {
             </div>
             <div className="space-y-2">
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faBuilding} className="mr-2" />
+                    <FontAwesomeIcon icon={faBuilding} className="mr-2"/>
                     <span>{job.provider_name}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faSackDollar} className="mr-2" />
+                    <FontAwesomeIcon icon={faSackDollar} className="mr-2"/>
                     <span>${formattedSalary}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faBriefcase} className="mr-2" />
+                    <FontAwesomeIcon icon={faBriefcase} className="mr-2"/>
                     <span>{job.type}</span>
                 </div>
                 <div className="flex items-center text-gray-700 dark:text-gray-400">
-                    <FontAwesomeIcon icon={faLocationDot} className="mr-2" />
+                    <FontAwesomeIcon icon={faLocationDot} className="mr-2"/>
                     <span>{job.provider_city}</span>
                 </div>
                 <div className="text-gray-700 dark:text-gray-400 mt-2 line-clamp-2">
                     <span>{job.description}</span>
+                </div>
+                <div className="text-gray-700 dark:text-gray-400 mt-2 line-clamp-2">
+                    <span>{job.distance_from_input_city}</span>
                 </div>
             </div>
             <div className="mt-4 flex flex-wrap">

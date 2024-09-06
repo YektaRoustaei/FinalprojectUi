@@ -14,7 +14,6 @@ const JobDetails = () => {
 
     if (!job) return <div>Loading...</div>;
 
-    // Function to handle saving or unsaving job
     const handleSaveClick = () => {
         if (isSaved) {
             unsaveJob();

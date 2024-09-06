@@ -11,7 +11,7 @@ const AdminSeekers = () => {
     const [expandedSeeker, setExpandedSeeker] = useState(null);
     const [initialLoad, setInitialLoad] = useState(true); // New state to track initial load
 
-    // Fetch seekers based on the search term
+
     const fetchSeekers = (search = '') => {
         fetch(`http://127.0.0.1:8000/api/seeker/all?search=${encodeURIComponent(search)}`)
             .then(response => response.json())

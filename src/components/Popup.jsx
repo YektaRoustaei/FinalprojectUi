@@ -19,7 +19,7 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch available CVs when the component mounts
+
         const fetchCVList = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/seeker/get-info', {
@@ -38,7 +38,7 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     }, [token]);
 
     useEffect(() => {
-        // Fetch job details to determine if cover letter and questions should be shown
+
         if (jobId) {
             const fetchJobDetails = async () => {
                 try {
@@ -57,7 +57,7 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     }, [jobId]);
 
     useEffect(() => {
-        // Fetch questions based on the jobId when the component mounts or jobId changes
+
         if (jobId && showQuestions) {
             const fetchQuestions = async () => {
                 try {

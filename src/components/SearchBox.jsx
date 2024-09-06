@@ -11,7 +11,6 @@ const SearchBox = ({ onSearchParamsChange }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Pass parameters and navigate
         navigate(`/jobslist?searchTerm=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}`);
     };
 

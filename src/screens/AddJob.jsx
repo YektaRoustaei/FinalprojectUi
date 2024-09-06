@@ -22,7 +22,6 @@ const AddJobPosting = () => {
     const [allJobskills, setAllJobskills] = useState([]);
 
     useEffect(() => {
-        // Fetch categories and skills on component mount
         fetch('http://127.0.0.1:8000/api/categories')
             .then(response => response.json())
             .then(data => {

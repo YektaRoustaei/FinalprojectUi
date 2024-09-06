@@ -22,13 +22,11 @@ const UpdateJobPosting = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        // Fetch categories and skills
         Promise.all([
             fetch('http://127.0.0.1:8000/api/categories').then(response => response.json()),
             fetch('http://127.0.0.1:8000/api/skills').then(response => response.json()),
         ])
             .then(([categoriesData, skillsData]) => {
-                // Format and set categories and job skills
                 const formattedCategories = categoriesData.map(category => ({
                     value: category.id,
                     label: category.title
@@ -43,7 +41,6 @@ const UpdateJobPosting = () => {
             })
             .catch(error => console.error('Error fetching categories or skills:', error));
 
-        // Fetch job details
         const token = localStorage.getItem('Provider_token');
         axios.get(`http://127.0.0.1:8000/api/job/${id}`, {
             headers: {

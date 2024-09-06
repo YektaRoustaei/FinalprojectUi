@@ -12,7 +12,7 @@ const FilterComponent = ({ onFilterChange }) => {
     useEffect(() => {
         const fetchFilters = async () => {
             try {
-                // Determine which API endpoint to call based on token presence
+
                 const url = token
                     ? 'http://127.0.0.1:8000/api/recommend'
                     : 'http://127.0.0.1:8000/api/search';
