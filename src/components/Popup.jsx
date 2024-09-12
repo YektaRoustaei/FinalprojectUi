@@ -15,11 +15,11 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     const [showCoverLetter, setShowCoverLetter] = useState(false); // State to control cover letter visibility
     const [showQuestions, setShowQuestions] = useState(false); // State to control question visibility
     const [error, setError] = useState(''); // State to handle error messages
+    const [isSuccess, setIsSuccess] = useState(false); // State to determine if message is success
     const token = localStorage.getItem('Seeker_token');
     const navigate = useNavigate();
 
     useEffect(() => {
-
         const fetchCVList = async () => {
             try {
                 const response = await axios.get('http://127.0.0.1:8000/api/seeker/get-info', {
@@ -38,7 +38,6 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     }, [token]);
 
     useEffect(() => {
-
         if (jobId) {
             const fetchJobDetails = async () => {
                 try {
@@ -57,7 +56,6 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     }, [jobId]);
 
     useEffect(() => {
-
         if (jobId && showQuestions) {
             const fetchQuestions = async () => {
                 try {
@@ -85,6 +83,7 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     const handleSaveCoverLetter = async () => {
         if (!coverLetter) {
             setError('Please write a cover letter.');
+            setIsSuccess(false);
             return;
         }
 
@@ -98,9 +97,11 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
                 },
             });
             setCoverLetterId(response.data.cover_letter_id);
-            setError('Cover letter saved successfully.');
+            setIsSuccess(true);
+            setError('Cover letter saved successfully.'); // Set success message
         } catch (error) {
             setError('An error occurred while saving the cover letter: ' + (error.response?.data?.message || error.message));
+            setIsSuccess(false); // Indicate this is an error
         } finally {
             setUploading(false);
         }
@@ -116,7 +117,7 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     const validateAnswers = () => {
         for (const question of questions) {
             const answer = answers[question.id];
-            if (question.answer_type === 'integer') {
+            if (question.answer_type === 'int') {
                 const numericAnswer = Number(answer);
                 if (isNaN(numericAnswer)) {
                     setError(`Answer for "${question.question}" must be a number.`);
@@ -164,8 +165,10 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
                 },
             });
             setError('Answers submitted successfully.');
+            setIsSuccess(true); // Indicate success
         } catch (error) {
             setError('An error occurred while submitting the answers: ' + (error.response?.data?.message || error.message));
+            setIsSuccess(false); // Indicate error
         } finally {
             setUploading(false);
         }
@@ -174,6 +177,7 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
     const handleSubmit = async () => {
         if (cvOption === 'existing' && !cvId) {
             setError('Please select a CV from the list.');
+            setIsSuccess(false);
             return;
         }
 
@@ -186,7 +190,8 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
                 onSubmit(cvId, coverLetterId, answers);
                 onClose();
             } else {
-                setError('Please answer all the questions before finalizing the application.');
+                setError('You are not eligible for this job.');
+                setIsSuccess(false);
             }
         }
     };
@@ -197,7 +202,12 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
                 <h2 className="text-2xl font-semibold mb-4 text-gray-800">Confirm Application</h2>
                 <p className="mb-4 text-gray-600">Are you sure you want to apply for this job?</p>
 
-                {error && <p className="text-red-500 mb-4">{error}</p>}
+                {/* Conditional message styling */}
+                {error && (
+                    <p className={`mb-4 ${isSuccess ? 'text-green-500' : 'text-red-500'}`}>
+                        {error}
+                    </p>
+                )}
 
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-2 text-gray-700">CV Options</h3>
@@ -225,10 +235,11 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
                                 className="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
                             >
                                 <option value="" disabled>Select a CV</option>
+
                                 {cvList.length > 0 ? (
                                     cvList.map((cv) => (
                                         <option key={cv.id} value={cv.id}>
-                                            {cv.title}
+                                            {cv.created_at}
                                         </option>
                                     ))
                                 ) : (
@@ -241,66 +252,41 @@ const Popup = ({ onClose, onSubmit, jobId }) => {
 
                 {showCoverLetter && (
                     <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-gray-700">Cover Letter</h3>
-                        <div className="mb-4">
-                            <textarea
-                                value={coverLetter}
-                                onChange={handleCoverLetterChange}
-                                placeholder="Write your cover letter here..."
-                                className="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-                            />
-                        </div>
+                        <label className="block mb-2 text-gray-600">Cover Letter:</label>
+                        <textarea
+                            value={coverLetter}
+                            onChange={handleCoverLetterChange}
+                            className="block w-full h-24 border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                        />
                         <button
                             onClick={handleSaveCoverLetter}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                            disabled={uploading}
+                            className="mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                         >
-                            {uploading ? 'Saving...' : 'Save Cover Letter'}
+                            Save Cover Letter
                         </button>
                     </div>
                 )}
 
                 {showQuestions && questions.length > 0 && (
                     <div className="mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-gray-700">Answer the following questions:</h3>
+                        <h3 className="text-lg font-semibold mb-2 text-gray-700">Job Questions</h3>
                         {questions.map((question) => (
                             <div key={question.id} className="mb-4">
-                                <label className="block mb-2 text-gray-600">{question.question}</label>
+                                <label className="block text-gray-600 mb-1">{question.question}</label>
                                 <input
-                                    type={question.answer_type === 'integer' ? 'number' : 'text'}
+                                    type={question.answer_type === 'int' ? 'number' : 'text'}
                                     value={answers[question.id] || ''}
                                     onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                                    placeholder={question.answer_type === 'integer' ? 'Enter a number' : 'Enter your answer'}
-                                    min={question.answer_type === 'integer' ? question.min_value : undefined}
-                                    max={question.answer_type === 'integer' ? question.max_value : undefined}
                                     className="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
                                 />
                             </div>
                         ))}
-                        <button
-                            onClick={handleSubmitAnswers}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                            disabled={uploading}
-                        >
-                            {uploading ? 'Submitting...' : 'Submit Answers'}
-                        </button>
                     </div>
                 )}
 
-                <div className="flex space-x-4">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        disabled={uploading}
-                    >
-                        {uploading ? 'Submitting...' : 'Submit Application'}
-                    </button>
+                <div className="flex justify-end space-x-4">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Cancel</button>
+                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Submit</button>
                 </div>
             </div>
         </div>

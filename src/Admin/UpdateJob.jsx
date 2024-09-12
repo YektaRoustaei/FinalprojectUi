@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useNavigate, useParams } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
 
+
 const UpdateJob = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -23,39 +24,29 @@ const UpdateJob = () => {
 
     useEffect(() => {
         // Fetch categories and skills
-        const fetchCategoriesAndSkills = async () => {
-            try {
-                const [categoriesResponse, skillsResponse] = await Promise.all([
-                    fetch('http://127.0.0.1:8000/api/categories').then(response => response.json()),
-                    fetch('http://127.0.0.1:8000/api/skills').then(response => response.json())
-                ]);
-
-                const formattedCategories = categoriesResponse.map(category => ({
+        Promise.all([
+            fetch('http://127.0.0.1:8000/api/categories').then(response => response.json()),
+            fetch('http://127.0.0.1:8000/api/skills').then(response => response.json())
+        ])
+            .then(([categoriesData, skillsData]) => {
+                const formattedCategories = categoriesData.map(category => ({
                     value: category.id,
                     label: category.title
                 }));
                 setCategories(formattedCategories);
 
-                const formattedJobskills = skillsResponse.map(skill => ({
+                const formattedJobskills = skillsData.map(skill => ({
                     value: skill.id,
                     label: skill.name
                 }));
                 setAllJobskills(formattedJobskills);
+            })
+            .catch(error => console.error('Error fetching categories or skills:', error));
 
-            } catch (error) {
-                console.error('Error fetching categories or skills:', error);
-                toast.error('Error fetching categories or skills');
-            }
-        };
-
-        // Fetch job details
-        const fetchJobDetails = async () => {
-            try {
-                setIsLoading(true);
-                const response = await axios.get('http://127.0.0.1:8000/api/joblist');
-                const job = response.data.find(job => job.id === parseInt(id));
-
-                if (job) {
+        if (id) {
+            axios.get(`http://127.0.0.1:8000/api/job/${id}`)
+                .then(response => {
+                    const job = response.data;
                     setTitle(job.title);
                     setDescription(job.description);
                     setSalary(job.salary);
@@ -64,11 +55,11 @@ const UpdateJob = () => {
                     setCoverLetter(job.cover_letter === 1);
                     setQuestion(job.question === 1);
 
-                    if (job.categories) {
-                        setSelectedCategories(job.categories.map(cat => ({
-                            value: cat.id,
-                            label: cat.title
-                        })));
+                    if (job.provider && job.provider.city) {
+                        setSelectedCategories([{
+                            value: job.provider.city.id,
+                            label: job.provider.city.city_name
+                        }]); // Assuming provider city as a category
                     }
 
                     if (job.jobskills) {
@@ -77,20 +68,12 @@ const UpdateJob = () => {
                             label: skill.name
                         })));
                     }
-                } else {
-                    toast.error('Job not found');
-                }
-            } catch (error) {
-                console.error('Error fetching job details:', error);
-                toast.error('Error fetching job details');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchCategoriesAndSkills();
-        fetchJobDetails();
-
+                })
+                .catch(error => {
+                    console.error('Error fetching job details:', error);
+                    toast.error('Error fetching job details');
+                });
+        }
     }, [id]);
 
     const handleCategoryChange = (selectedOptions) => {
@@ -118,7 +101,7 @@ const UpdateJob = () => {
 
         try {
             setIsLoading(true);
-            const response = await axios.put(`http://127.0.0.1:8000/api/joblist/${id}`, updatedJobPosting, {
+            const response = await axios.put(`http://127.0.0.1:8000/api/updatejob/${id}`, updatedJobPosting, {
                 headers: {
                     'Content-Type': 'application/json',
                 }
@@ -126,7 +109,7 @@ const UpdateJob = () => {
 
             if (response.status === 200) {
                 toast.success("Job updated successfully");
-                navigate('/provider-dashboard/jobs'); // Navigate to /provider-dashboard/jobs after successful update
+                navigate('/admin'); // Navigate to /provider-dashboard/jobs after successful update
             } else {
                 toast.error('Job update failed. Please try again.');
             }
@@ -139,15 +122,15 @@ const UpdateJob = () => {
     };
 
     const handleCancel = () => {
-        navigate('/provider-dashboard/jobs'); // Navigate to /provider-dashboard/jobs on cancel
+        navigate('/admin'); // Navigate to /provider-dashboard/jobs on cancel
     };
 
     return (
         <section className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 my-5">
                 <h2 className="text-center text-2xl font-bold mb-6">Update Job Posting</h2>
-                {isLoading && <div className="text-center mb-4">Loading...</div>}
                 <form className="space-y-4" onSubmit={handleSubmit}>
+                    {/* Form Fields */}
                     <div className="mb-4">
                         <label htmlFor="title" className="block text-gray-700 font-bold mb-2">
                             Job Title
@@ -256,7 +239,7 @@ const UpdateJob = () => {
                     </div>
                     <div className="mb-4">
                         <label htmlFor="category" className="block text-gray-700 font-bold mb-2">
-                            Job Categories
+                            Categories
                         </label>
                         <CreatableSelect
                             isMulti
@@ -278,20 +261,20 @@ const UpdateJob = () => {
                             placeholder="Select job skills"
                         />
                     </div>
-                    <div className="flex justify-end space-x-4">
-                        <button
-                            type="button"
-                            className="bg-gray-500 text-white py-2 px-4 rounded"
-                            onClick={handleCancel}
-                        >
-                            Cancel
-                        </button>
+                    <div className="flex justify-between">
                         <button
                             type="submit"
-                            className="bg-blue-500 text-white py-2 px-4 rounded"
+                            className={`bg-blue-500 text-white py-2 px-4 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Updating...' : 'Update Job'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="bg-gray-500 text-white py-2 px-4 rounded"
+                        >
+                            Cancel
                         </button>
                     </div>
                 </form>

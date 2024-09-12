@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js';
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
 const AdminJobs = () => {
+    const navigate = useNavigate(); // Initialize useNavigate hook
     const [jobs, setJobs] = useState([]);
     const [latestJobs, setLatestJobs] = useState([]);
     const [citiesData, setCitiesData] = useState([]);
@@ -27,7 +29,6 @@ const AdminJobs = () => {
             });
     };
 
-    // Fetch city data
     const fetchCitiesData = () => {
         fetch('http://127.0.0.1:8000/api/city/static')
             .then(response => response.json())
@@ -63,8 +64,13 @@ const AdminJobs = () => {
     };
 
     const handleEdit = (jobId) => {
-        console.log(`Edit job with ID: ${jobId}`);
+        if (jobId) {
+            navigate(`/admin/editjob/${jobId}`);
+        } else {
+            console.error('Invalid job ID');
+        }
     };
+
 
     const handleDelete = (jobId) => {
         if (window.confirm('Are you sure you want to delete this job?')) {

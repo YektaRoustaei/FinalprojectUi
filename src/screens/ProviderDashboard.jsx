@@ -45,6 +45,7 @@ const ProviderDashboard = () => {
                     setUser(null);
                     toast.success('Logout successful.');
                     navigate('/'); // Redirect to home page after logout
+                    window.location.reload(); // Refresh the page after logout
                 })
                 .catch(error => {
                     console.error('Error logging out:', error);

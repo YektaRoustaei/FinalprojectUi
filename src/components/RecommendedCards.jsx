@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { useNavigate } from 'react-router-dom';
+import { parseISO, isBefore } from 'date-fns';
 
 const RecommendedCards = ({ jobs = [] }) => {
     const navigate = useNavigate();
@@ -19,6 +20,12 @@ const RecommendedCards = ({ jobs = [] }) => {
         });
     };
 
+    const isExpired = (expiryDate) => {
+        const now = new Date();
+        const expiry = parseISO(expiryDate);
+        return isBefore(expiry, now); // Returns true if the expiry date is in the past
+    };
+
     return (
         <section className="container mx-auto grid grid-cols-1 gap-6 ">
             <h2 className="text-2xl font-bold">Recommended Jobs</h2>
@@ -30,7 +37,8 @@ const RecommendedCards = ({ jobs = [] }) => {
                     >
                         <div className="mb-4">
                             <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{job.title}</h5>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Posted by <span className="font-semibold text-gray-700 dark:text-white">{job.provider_name}</span></p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Posted by <span
+                                className="font-semibold text-gray-700 dark:text-white">{job.provider_name}</span></p>
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center text-gray-700 dark:text-gray-400">
@@ -70,13 +78,34 @@ const RecommendedCards = ({ jobs = [] }) => {
                                 );
                             })}
                         </div>
+                        <div>
+                            {/* Conditionally render the paragraph only if distance_from_input_city is not 0 */}
+                            {job.distance_from_input_city > 0 && (
+                                <p className="text-red-600">
+                                    {Math.round(job.distance_from_input_city)} miles away from your searched location
+                                </p>
+                            )}
+                            <p className="text-red-600">
+                                {Math.round(job.distance_from_seeker_city)} miles away
+                            </p>
+                        </div>
+                        <div className='text-red-600 font-semibold'>
+                            {job.expiry_date && (
+                                <p>Expiry date: {job.expiry_date}</p>
+                            )}
+                        </div>
                         <div className="mt-4 text-right">
-                            <button
-                                onClick={() => handleCardClick(job)}
-                                className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                            >
-                                Read more
-                            </button>
+                            {/* Conditionally render "Read more" button or "Job Expired" text */}
+                            {job.expiry_date && isExpired(job.expiry_date) ? (
+                                <span className="text-red-600 font-bold">Job Expired</span>
+                            ) : (
+                                <button
+                                    onClick={() => handleCardClick(job)}
+                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                >
+                                    Read more
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))
@@ -100,6 +129,7 @@ RecommendedCards.propTypes = {
             salary: PropTypes.number.isRequired,
             type: PropTypes.string.isRequired,
             distance: PropTypes.number.isRequired,
+
         })
     ).isRequired
 };

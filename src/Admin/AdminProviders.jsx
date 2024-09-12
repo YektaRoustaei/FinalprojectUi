@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Pie, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale } from 'chart.js';
 
@@ -10,6 +11,8 @@ const AdminProviders = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showDetails, setShowDetails] = useState({});
     const [initialLoad, setInitialLoad] = useState(true);
+
+    const navigate = useNavigate();
 
     const fetchProviders = (search = '') => {
         fetch(`http://127.0.0.1:8000/api/provider/all?search=${encodeURIComponent(search)}`)
@@ -57,9 +60,10 @@ const AdminProviders = () => {
         }));
     };
 
-    const handleEdit = (providerId) => {
-        console.log(`Edit provider with ID: ${providerId}`);
+    const handleEdit = (providerId, providerEmail) => {
+        navigate('/admin/editprovider', { state: { id: providerId, email: providerEmail } });
     };
+
 
     const handleDelete = (providerId) => {
         if (window.confirm('Are you sure you want to delete this provider?')) {
@@ -98,7 +102,7 @@ const AdminProviders = () => {
             datasets: [{
                 label: 'Number of Providers',
                 data: providerCounts,
-                backgroundColor: '#3b82f6', // Use a color that matches the Seekers chart
+                backgroundColor: '#3b82f6',
                 borderColor: '#fff',
                 borderWidth: 1,
             }],
@@ -254,7 +258,7 @@ const AdminProviders = () => {
 
                     <div className="absolute top-4 right-4 flex space-x-2">
                         <button
-                            onClick={() => handleEdit(provider.id)}
+                            onClick={() => handleEdit(provider.id, provider.email)} // Pass providerId and providerEmail to handleEdit
                             className="px-4 py-2 border border-green-600 hover:bg-green-700 hover:text-white rounded transition-colors duration-300"
                         >
                             Edit

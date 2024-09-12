@@ -1,30 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Pie, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale } from 'chart.js';
+import { useNavigate } from 'react-router-dom';  // Import useNavigate
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale);
 
 const AdminSeekers = () => {
+    const navigate = useNavigate();  // Initialize navigate
     const [seekers, setSeekers] = useState([]);
     const [citiesData, setCitiesData] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [expandedSeeker, setExpandedSeeker] = useState(null);
-    const [initialLoad, setInitialLoad] = useState(true); // New state to track initial load
-
+    const [initialLoad, setInitialLoad] = useState(true);
 
     const fetchSeekers = (search = '') => {
         fetch(`http://127.0.0.1:8000/api/seeker/all?search=${encodeURIComponent(search)}`)
             .then(response => response.json())
             .then(data => {
                 setSeekers(data);
-                setInitialLoad(false);  // Set initial load to false after the first fetch
+                setInitialLoad(false);
             })
             .catch(error => {
                 console.error('There was an error fetching the seekers!', error);
             });
     };
 
-    // Fetch city data
     const fetchCitiesData = () => {
         fetch('http://127.0.0.1:8000/api/city/static')
             .then(response => response.json())
@@ -41,8 +41,8 @@ const AdminSeekers = () => {
     };
 
     useEffect(() => {
-        fetchSeekers(); // Fetch all seekers initially
-        fetchCitiesData(); // Fetch city data initially
+        fetchSeekers();
+        fetchCitiesData();
     }, []);
 
     const handleSearchSubmit = (e) => {
@@ -52,7 +52,7 @@ const AdminSeekers = () => {
 
     const handleClearSearch = () => {
         setSearchTerm('');
-        fetchSeekers(''); // Fetch all seekers again with an empty search term
+        fetchSeekers('');
     };
 
     const toggleDetails = (email) => {
@@ -60,7 +60,7 @@ const AdminSeekers = () => {
     };
 
     const handleEdit = (seekerEmail) => {
-        console.log(`Edit seeker with email: ${seekerEmail}`);
+        navigate('/admin/editseeker', { state: { email: seekerEmail } });  // Navigate with state
     };
 
     const handleDelete = (seekerEmail) => {
@@ -70,7 +70,6 @@ const AdminSeekers = () => {
         }
     };
 
-    // Aggregate job statuses across all seekers
     const aggregateJobStatusData = () => {
         let accepted = 0, rejected = 0, hold = 0;
 
@@ -115,7 +114,6 @@ const AdminSeekers = () => {
         };
     };
 
-    // Calculate total seekers from citiesData
     const totalSeekers = citiesData.reduce((total, city) => total + city.seekersCount, 0);
 
     const displayedSeekers = initialLoad ? seekers.slice(0, 5) : seekers;
@@ -124,7 +122,6 @@ const AdminSeekers = () => {
         <div className="bg-gray-50 min-h-screen p-8">
             <h1 className="text-4xl font-extrabold text-gray-900 mb-8">Seekers</h1>
 
-            {/* Search Box */}
             <form onSubmit={handleSearchSubmit} className="mb-8">
                 <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                     {searchTerm && (

@@ -16,6 +16,9 @@ const Applications = () => {
     const [cvDetails, setCvDetails] = useState({});
     const navigate = useNavigate();
 
+    console.log(cvDetails)
+    console.log(jobDetails)
+
     useEffect(() => {
         fetchApplications();
         fetchSavedCvs();
@@ -218,7 +221,6 @@ const Applications = () => {
                                             )}
 
                                             <h3 className="text-xl font-semibold mt-6 mb-4">Seeker Details</h3>
-                                            <p className="text-gray-800 mb-2"><strong>ID:</strong> {application.seeker.id}</p>
                                             <p className="text-gray-800 mb-2"><strong>Name:</strong> {application.seeker.first_name} {application.seeker.last_name}</p>
                                             <p className="text-gray-800 mb-2"><strong>Email:</strong> {application.seeker.email}</p>
                                             <p className="text-gray-800 mb-4"><strong>Phone:</strong> {application.seeker.phonenumber}</p>
@@ -275,29 +277,24 @@ const Applications = () => {
                                                             ))}
                                                         </ul>
                                                     </div>
+
+
                                                     <div className="mb-4">
-                                                        <h4 className="text-lg font-semibold">skills</h4>
-                                                        <h4 className="text-lg text-red-600">3 matching skills</h4>
+                                                        <h4 className="text-lg font-semibold">Skills</h4>
+                                                        <p className="text-lg text-red-600">{application.matched_skills_count} matching
+                                                            skills</p>
+
+
                                                         <ul className="list-disc pl-5">
-                                                            {cvDetails?.educations?.map((edu) => (
-                                                                <li key={edu.id} className="mb-3">
-
-                                                                    <p><strong>
-                                                                    </strong> {edu.field_of_study}</p>
-                                                                    <p><strong>
-                                                                    </strong> Java Script </p>
-                                                                    <p><strong>
-                                                                    </strong> React </p>
-                                                                    <p><strong>
-                                                                    </strong> Java </p>
-
+                                                        {cvDetails?.seeker_skills?.map((skillObj) => (
+                                                                <li key={skillObj.id} className="mb-3">
+                                                                    <p>{skillObj.skill.name}</p>
                                                                 </li>
-
                                                             ))}
                                                         </ul>
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-lg font-semibold">Cover Letter</h4>
+                                                    <h4 className="text-lg font-semibold">Cover Letter</h4>
                                                         <p className="text-gray-800">
                                                             {cvDetails?.cover_letter || 'Cover letter not provided.'}
                                                         </p>

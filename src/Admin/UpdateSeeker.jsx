@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import CreatableSelect from 'react-select/creatable';
 
-const EditSeekerInfo = () => {
+const UpdateSeeker = () => {
     const navigate = useNavigate();
-    const token = localStorage.getItem('Seeker_token');
+    const token = localStorage.getItem('Seeker_token'); // This is not used for the current request
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -18,7 +18,7 @@ const EditSeekerInfo = () => {
     const [cities, setCities] = useState([]);
     const [selectedCity, setSelectedCity] = useState(null);
     const [citiesLoaded, setCitiesLoaded] = useState(false);
-    const [address, setAddress] = useState(""); // Add state for address
+    const [address, setAddress] = useState("");
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -44,30 +44,30 @@ const EditSeekerInfo = () => {
 
         const fetchSeekerInfo = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/seeker/get-info', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                const data = response.data;
-                setFirstName(data.first_name || '');
-                setLastName(data.last_name || '');
-                setPhonenumber(data.phonenumber || '');
-                setEmail(data.email || '');
-                setAddress(data.address || ''); // Set address from response
+                const response = await axios.get('http://127.0.0.1:8000/api/seeker/all'); // Updated endpoint
+                if (response.status === 200) {
+                    const data = response.data[0]; // Assuming the first seeker in the response
 
-                if (data.city_id) {
-                    const cityOption = cities.find(city => city.value === data.city_id);
-                    setSelectedCity(cityOption || { label: data.address, value: data.city_id }); // Assuming address as city name if no city ID
+                    setFirstName(data.first_name || '');
+                    setLastName(data.last_name || '');
+                    setPhonenumber(data.phonenumber || '');
+                    setEmail(data.email || '');
+                    setAddress(data.address || '');
+
+                    // Assuming you want to use the address as city if no city ID
+                    const cityOption = cities.find(city => city.label === data.address);
+                    setSelectedCity(cityOption || { label: data.address, value: '' });
+                } else {
+                    throw new Error(`Unexpected status code: ${response.status}`);
                 }
             } catch (error) {
-                console.error('Error fetching seeker info:', error);
-                toast.error('Failed to load seeker information.');
+                console.error('Error fetching seeker info:', error.response ? error.response.data : error.message);
+                toast.error(`Failed to load seeker information: ${error.response ? error.response.data.message : error.message}`);
             }
         };
 
         fetchSeekerInfo();
-    }, [citiesLoaded, cities, token]);
+    }, [citiesLoaded, cities]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -78,6 +78,7 @@ const EditSeekerInfo = () => {
         }
 
         const updatedSeeker = {
+            id: 1, // Replace with actual seeker ID if available
             first_name: firstName,
             last_name: lastName,
             phonenumber,
@@ -88,16 +89,15 @@ const EditSeekerInfo = () => {
 
         try {
             setIsLoading(true);
-            const response = await axios.put('http://127.0.0.1:8000/api/seeker/edit', updatedSeeker, {
+            const response = await axios.put('http://127.0.0.1:8000/api/seeker/edit-without-token', updatedSeeker, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
                 }
             });
 
             if (response.status === 200) {
                 toast.success("Information updated successfully");
-                navigate('/seeker-dashboard');  // Redirect to /seeker-dashboard on success
+                navigate('/admin');  // Redirect to /seeker-dashboard on success
             } else {
                 toast.error('Update failed. Please try again.');
             }
@@ -116,7 +116,7 @@ const EditSeekerInfo = () => {
     return (
         <section className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 my-5">
-                <h2 className="text-center text-2xl font-bold mb-6">Edit Your Information</h2>
+                <h2 className="text-center text-2xl font-bold mb-6">Update Your Information</h2>
                 <form className="space-y-4" onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label htmlFor="firstName" className="block text-gray-700 font-bold mb-2">
@@ -168,7 +168,7 @@ const EditSeekerInfo = () => {
                             City
                         </label>
 
-                        <p className="mb-2 text-gray-600">Current City: {address}</p> {/* Display address */}
+                        <p className="mb-2 text-gray-600">Current City: {address}</p>
 
                         <CreatableSelect
                             id="city"
@@ -246,4 +246,4 @@ const EditSeekerInfo = () => {
     );
 };
 
-export default EditSeekerInfo;
+export default UpdateSeeker;

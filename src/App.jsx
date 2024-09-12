@@ -39,6 +39,9 @@ import Cities from "./Admin/Cities.jsx";
 import AddQuestionnair from "./screens/AddQuestionnair.jsx";
 import EditProviderInfo from "./components/EditProviderInfo.jsx";
 import SavedCV from "./components/SavedCV.jsx";
+import UpdateSeeker from "./Admin/UpdateSeeker.jsx";
+import UpdateProvider from "./Admin/UpdateProvider.jsx";
+import UpdateJob from "./Admin/UpdateJob.jsx";
 
 const App = () => {
     const router = createBrowserRouter(
@@ -88,6 +91,21 @@ const App = () => {
                 <Route path='/admin/cities' element={
                     <AdminProtectedRoute>
                         <Cities/>
+                    </AdminProtectedRoute>
+                } />
+                <Route path='/admin/editseeker' element={
+                    <AdminProtectedRoute>
+                        <UpdateSeeker/>
+                    </AdminProtectedRoute>
+                } />
+                <Route path='/admin/editprovider' element={
+                    <AdminProtectedRoute>
+                        <UpdateProvider/>
+                    </AdminProtectedRoute>
+                } />
+                <Route path='/admin/editjob/:id' element={
+                    <AdminProtectedRoute>
+                        <UpdateJob/>
                     </AdminProtectedRoute>
                 } />
                 <Route path="/add-job" element={
